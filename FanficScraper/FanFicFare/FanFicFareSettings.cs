@@ -5,4 +5,6 @@ public class FanFicFareSettings
     public bool IsAdult { get; set; } = false;
 
     public bool MetadataOnly { get; set; } = false;
+    
+    public string? TargetDirectory { get; set; }
 }

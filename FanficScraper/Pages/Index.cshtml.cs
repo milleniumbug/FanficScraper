@@ -9,8 +9,8 @@ public class IndexModel : PageModel
 {
     private readonly FanFicUpdater fanFicUpdater;
     private readonly StoryBrowser storyBrowser;
-    public IEnumerable<Story> UpdatedStories { get; private set; }
-        = Enumerable.Empty<Story>();
+    public IEnumerable<Data.Story> UpdatedStories { get; private set; }
+        = Enumerable.Empty<Data.Story>();
 
     public IndexModel(
         FanFicUpdater fanFicUpdater,

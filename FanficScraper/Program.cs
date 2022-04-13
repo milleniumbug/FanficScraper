@@ -1,6 +1,7 @@
 using FanficScraper;
 using FanficScraper.Configurations;
 using FanficScraper.Data;
+using FanficScraper.FanFicFare;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,6 +11,9 @@ var databaseConfiguration = databaseConfigurationSection.Get<DataConfiguration>(
 
 // Add services to the container.
 builder.Services.AddRazorPages();
+
+builder.Services.AddScoped<StoryBrowser>();
+builder.Services.AddScoped<FanFicUpdater>();
 
 builder.Services.AddSqlite<StoryContext>(databaseConfiguration.ConnectionString);
 

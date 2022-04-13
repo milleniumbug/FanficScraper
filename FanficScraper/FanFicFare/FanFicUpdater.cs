@@ -1,16 +1,21 @@
+using FanficScraper.Configurations;
 using FanficScraper.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace FanficScraper.FanFicFare;
 
 public class FanFicUpdater
 {
     private readonly StoryContext storyContext;
+    private readonly DataConfiguration dataConfiguration;
 
     public FanFicUpdater(
-        StoryContext storyContext)
+        StoryContext storyContext,
+        IOptions<DataConfiguration> dataConfiguration)
     {
         this.storyContext = storyContext;
+        this.dataConfiguration = dataConfiguration.Value;
     }
 
     public async Task UpdateOldest(TimeSpan timeSpan)
@@ -49,7 +54,7 @@ public class FanFicUpdater
 
         UpdateStoryEntity(story, fanFicStoryDetails, currentDate);
 
-        this.storyContext.Add(story);
+        this.storyContext.Attach(story);
 
         await storyContext.SaveChangesAsync();
     }
@@ -69,12 +74,13 @@ public class FanFicUpdater
         story.StoryUrl = fanFicStoryDetails.StoryUrl;
     }
 
-    private static async Task<FanFicStoryDetails> RunFanFicFare(string url)
+    private async Task<FanFicStoryDetails> RunFanFicFare(string url)
     {
         var fanFicFareSettings = new FanFicFareSettings()
         {
             IsAdult = true,
-            MetadataOnly = false
+            MetadataOnly = false,
+            TargetDirectory = this.dataConfiguration.StoriesDirectory
         };
         return await FanFicFare.Run(fanFicFareSettings, url);
     }

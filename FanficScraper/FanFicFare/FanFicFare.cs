@@ -13,8 +13,15 @@ public static class FanFicFare
         {
             var psi = new ProcessStartInfo()
             {
+                FileName = "fanficfare",
                 RedirectStandardOutput = true,
+                UseShellExecute = false,
             };
+            if (settings.TargetDirectory != null)
+            {
+                psi.WorkingDirectory = settings.TargetDirectory;
+            }
+            
             if (settings.IsAdult)
             {
                 psi.ArgumentList.Add("-o");
@@ -34,6 +41,7 @@ public static class FanFicFare
             {
                 StartInfo = psi
             };
+            process.Start();
 
             var meta = JsonSerializer.Deserialize<FanFicFareStoryJson>(process.StandardOutput.ReadToEnd())
                        ?? throw new JsonException();

@@ -5,10 +5,10 @@
 }
 
 <div>
-    <form method="post" asp-page="/Project">
+    <form method="post" asp-page="/">
         <div class="form-floating">
-            <input id="project-name" name="projectName" class="form-control" aria-required="true"/>
-            <label for="project-name" class="form-label">Story URL</label>
+            <input id="story-url" name="url" class="form-control" aria-required="true"/>
+            <label for="story-url" class="form-label">Story URL</label>
         </div>
         <div>
             <button type="submit" class="w-100 btn btn-lg btn-primary">Update</button>
@@ -19,7 +19,7 @@
     @{
         @foreach (var story in Model.UpdatedStories)
         {
-            <li>@story.StoryName by @story.AuthorName. Updated: @story.StoryUpdated</li>
+            <li><a href="/Story/@story.FileName">@story.StoryName</a> by @story.AuthorName. Updated: @story.StoryUpdated.ToString("yyyy-MM-dd")</li>
         }
     }
     </ul>

@@ -12,4 +12,17 @@ public class StoryContext : DbContext
     }
     
     public DbSet<Story> Stories { get; set; }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
+
+        {
+            var storyBuilder = modelBuilder.Entity<Story>();
+            storyBuilder.HasIndex(story => story.FileName);
+            storyBuilder.HasIndex(story => story.StoryUpdated);
+            storyBuilder.HasIndex(story => story.LastUpdated);
+            storyBuilder.HasIndex(story => story.StoryName);
+        }
+    }
 }
