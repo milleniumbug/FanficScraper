@@ -1,0 +1,26 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Home page";
+}
+
+<div>
+    <form method="post" asp-page="/Project">
+        <div class="form-floating">
+            <input id="project-name" name="projectName" class="form-control" aria-required="true"/>
+            <label for="project-name" class="form-label">Story URL</label>
+        </div>
+        <div>
+            <button type="submit" class="w-100 btn btn-lg btn-primary">Update</button>
+        </div>
+    </form>
+    
+    <ul>
+    @{
+        @foreach (var story in Model.UpdatedStories)
+        {
+            <li>@story.StoryName by @story.AuthorName. Updated: @story.StoryUpdated</li>
+        }
+    }
+    </ul>
+</div>
