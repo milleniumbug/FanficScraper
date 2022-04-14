@@ -3,6 +3,7 @@ using FanficScraper.Configurations;
 using FanficScraper.Data;
 using FanficScraper.FanFicFare;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,11 +16,24 @@ builder.Services.AddRazorPages();
 
 builder.Services.AddScoped<StoryBrowser>();
 builder.Services.AddScoped<FanFicUpdater>();
-builder.Services.AddScoped<IFanFicFare, FanFicFare>(provider => new FanFicFare(new FanFicFareSettings()
+builder.Services.AddScoped<IFanFicFare>(provider =>
 {
-    IsAdult = true,
-    TargetDirectory = dataConfiguration.StoriesDirectory
-}));
+    var clients = new List<IFanFicFare>();
+    if (!string.IsNullOrWhiteSpace(dataConfiguration.SecondaryFanFicScraperUrl))
+    {
+        clients.Add(new FanFicScraper(new HttpClient()
+        {
+            BaseAddress = new Uri(dataConfiguration.SecondaryFanFicScraperUrl)
+        }, Options.Create(dataConfiguration)));
+    }
+    clients.Add(new FanFicFare(new FanFicFareSettings()
+    {
+        IsAdult = true,
+        TargetDirectory = dataConfiguration.StoriesDirectory
+    }));
+
+    return new CompositeFanFicFare(clients);
+});
 
 builder.Services.AddSqlite<StoryContext>(dataConfiguration.ConnectionString);
 

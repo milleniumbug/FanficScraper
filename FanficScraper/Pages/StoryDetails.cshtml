@@ -10,7 +10,7 @@
         <h1>@Model.Story.StoryName</h1>
         By @Model.Story.AuthorName<br/><br/>
         @(Model.Story.IsComplete ? "Complete" : "Incomplete")<br/>
-        Last updated: @Model.Story.LastUpdated.ToString("yyyy-MM-dd")<br/>
+        Last updated: @Model.Story.StoryUpdated.ToString("yyyy-MM-dd")<br/>
         <br/>
         <a href="@Model.Story.StoryUrl">Go to the story</a><br/>
         <a href="/Story/@Model.Story.FileName">Download EPUB</a> 
