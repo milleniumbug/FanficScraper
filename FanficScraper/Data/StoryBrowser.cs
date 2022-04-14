@@ -6,11 +6,14 @@ namespace FanficScraper.Data;
 public class StoryBrowser
 {
     private readonly StoryContext storyContext;
+    private readonly IFanFicFare fanFicFare;
 
     public StoryBrowser(
-        StoryContext storyContext)
+        StoryContext storyContext,
+        IFanFicFare fanFicFare)
     {
         this.storyContext = storyContext;
+        this.fanFicFare = fanFicFare;
     }
     
     public async Task<Story?> FindByUrl(string url)
@@ -18,13 +21,19 @@ public class StoryBrowser
         var fanFicFareSettings = new FanFicFareSettings()
         {
             IsAdult = true,
-            MetadataOnly = true,
         };
-        var fanFicStoryDetails = await FanFicFare.FanFicFare.Run(fanFicFareSettings, url);
+        var fanFicStoryDetails = await fanFicFare.Run(url, metadataOnly: true);
 
         return await this.storyContext.Stories
             .AsNoTracking()
             .FirstOrDefaultAsync(story => story.StoryUrl == url);
+    }
+    
+    public async Task<Story?> FindById(string id)
+    {
+        return await this.storyContext.Stories
+            .AsNoTracking()
+            .FirstOrDefaultAsync(story => story.FileName == id);
     }
     
     public async Task<IEnumerable<Story>> FindByName(string name)

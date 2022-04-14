@@ -8,17 +8,17 @@ namespace FanficScraper.FanFicFare;
 public class FanFicUpdater
 {
     private readonly StoryContext storyContext;
-    private readonly DataConfiguration dataConfiguration;
+    private readonly IFanFicFare fanFicFare;
 
     public FanFicUpdater(
         StoryContext storyContext,
-        IOptions<DataConfiguration> dataConfiguration)
+        IFanFicFare fanFicFare)
     {
         this.storyContext = storyContext;
-        this.dataConfiguration = dataConfiguration.Value;
+        this.fanFicFare = fanFicFare;
     }
 
-    public async Task UpdateOldest(TimeSpan timeSpan)
+    public async Task<FanFicStoryDetails?> UpdateOldest(TimeSpan timeSpan)
     {
         var currentDate = DateTime.UtcNow;
         var date = currentDate - timeSpan;
@@ -31,16 +31,27 @@ public class FanFicUpdater
 
         if (story == null)
         {
-            return;
+            return null;
         }
-        
-        var fanFicStoryDetails = await RunFanFicFare(story.StoryUrl);
-        UpdateStoryEntity(story, fanFicStoryDetails, currentDate);
 
-        await storyContext.SaveChangesAsync();
+        try
+        {
+            var fanFicStoryDetails = await RunFanFicFare(story.StoryUrl);
+            UpdateStoryEntity(story, fanFicStoryDetails, currentDate);
+            return fanFicStoryDetails;
+        }
+        catch (Exception)
+        {
+            story.LastUpdated = currentDate;
+            return null;
+        }
+        finally
+        {
+            await storyContext.SaveChangesAsync();            
+        }
     }
 
-    public async Task UpdateStory(string url)
+    public async Task<string> UpdateStory(string url)
     {
         var fanFicStoryDetails = await RunFanFicFare(url);
         
@@ -57,6 +68,8 @@ public class FanFicUpdater
         this.storyContext.Attach(story);
 
         await storyContext.SaveChangesAsync();
+
+        return story.FileName;
     }
 
     private void UpdateStoryEntity(
@@ -76,12 +89,6 @@ public class FanFicUpdater
 
     private async Task<FanFicStoryDetails> RunFanFicFare(string url)
     {
-        var fanFicFareSettings = new FanFicFareSettings()
-        {
-            IsAdult = true,
-            MetadataOnly = false,
-            TargetDirectory = this.dataConfiguration.StoriesDirectory
-        };
-        return await FanFicFare.Run(fanFicFareSettings, url);
+        return await fanFicFare.Run(url, metadataOnly: false);
     }
 }

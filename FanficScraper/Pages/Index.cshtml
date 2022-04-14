@@ -19,7 +19,7 @@
     @{
         @foreach (var story in Model.UpdatedStories)
         {
-            <li><a href="/Story/@story.FileName">@story.StoryName</a> by @story.AuthorName. Updated: @story.StoryUpdated.ToString("yyyy-MM-dd")</li>
+            <li><a href="/StoryDetails/@story.FileName">@story.StoryName</a> by @story.AuthorName. @(story.IsComplete ? "Complete" : "Incomplete") Updated: @story.StoryUpdated.ToString("yyyy-MM-dd"). <a href="/Story/@story.FileName">Download</a></li>
         }
     }
     </ul>

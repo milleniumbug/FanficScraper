@@ -5,9 +5,16 @@ using Microsoft.AspNetCore.Components.Web;
 
 namespace FanficScraper.FanFicFare;
 
-public static class FanFicFare
+public class FanFicFare : IFanFicFare
 {
-    public static Task<FanFicStoryDetails> Run(FanFicFareSettings settings, string storyUrl)
+    private readonly FanFicFareSettings settings;
+
+    public FanFicFare(FanFicFareSettings settings)
+    {
+        this.settings = settings;
+    }
+    
+    public Task<FanFicStoryDetails> Run(string storyUrl, bool metadataOnly = false)
     {
         return Task.Run(() =>
         {
@@ -28,7 +35,7 @@ public static class FanFicFare
                 psi.ArgumentList.Add("is_adult=true");
             }
 
-            if (settings.MetadataOnly)
+            if (metadataOnly)
             {
                 psi.ArgumentList.Add("--no-output");
             }
