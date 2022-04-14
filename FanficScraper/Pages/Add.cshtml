@@ -1,0 +1,17 @@
+﻿@page
+@model AddModel
+@{
+    ViewData["Title"] = "Add story";
+}
+
+<div>
+    <form method="post" asp-page="/Add">
+        <div class="form-floating">
+            <input id="story-url" name="url" class="form-control" aria-required="true"/>
+            <label for="story-url" class="form-label">Story URL</label>
+        </div>
+        <div>
+            <button type="submit" class="w-100 btn btn-lg btn-primary">Update</button>
+        </div>
+    </form>
+</div>

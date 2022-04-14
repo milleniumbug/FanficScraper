@@ -12,6 +12,8 @@ public class IndexModel : PageModel
     public IEnumerable<Data.Story> UpdatedStories { get; private set; }
         = Enumerable.Empty<Data.Story>();
 
+    public string Name { get; private set; } = "";
+
     public IndexModel(
         FanFicUpdater fanFicUpdater,
         StoryBrowser storyBrowser)
@@ -20,15 +22,18 @@ public class IndexModel : PageModel
         this.storyBrowser = storyBrowser;
     }
 
-    public async Task OnGetAsync()
+    public async Task OnGetAsync(string? name)
     {
-        var lastUpdated = await this.storyBrowser.FindLastUpdated(15);
-        this.UpdatedStories = lastUpdated;
-    }
-
-    public async Task<IActionResult> OnPostAsync(string url)
-    {
-        await fanFicUpdater.UpdateStory(url);
-        return RedirectToPage();
+        if (!string.IsNullOrEmpty(name))
+        {
+            var stories = await this.storyBrowser.FindByName(name);
+            this.UpdatedStories = stories;
+            this.Name = name;
+        }
+        else
+        {
+            var lastUpdated = await this.storyBrowser.FindLastUpdated(15);
+            this.UpdatedStories = lastUpdated;
+        }
     }
 }

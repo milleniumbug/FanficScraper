@@ -5,13 +5,13 @@
 }
 
 <div>
-    <form method="post" asp-page="/">
+    <form method="get" asp-page="/">
         <div class="form-floating">
-            <input id="story-url" name="url" class="form-control" aria-required="true"/>
-            <label for="story-url" class="form-label">Story URL</label>
+            <input id="story-url" name="name" class="form-control" aria-required="true" value="@Model.Name"/>
+            <label for="story-url" class="form-label">Search</label>
         </div>
         <div>
-            <button type="submit" class="w-100 btn btn-lg btn-primary">Update</button>
+            <button type="submit" class="w-100 btn btn-lg btn-primary">Search</button>
         </div>
     </form>
     
