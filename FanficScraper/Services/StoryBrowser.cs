@@ -39,9 +39,13 @@ public class StoryBrowser
     
     public async Task<IEnumerable<Story>> FindByName(string name)
     {
+        var escapedName = name
+            .Replace("!", "!!")
+            .Replace("%", "!%")
+            .Replace("_", "!_");
         return await this.storyContext.Stories
             .AsNoTracking()
-            .Where(story => story.StoryName.Contains(name))
+            .Where(story => EF.Functions.Like(story.StoryName, $"%{escapedName}%", "!"))
             .Take(10)
             .ToListAsync();
     }
