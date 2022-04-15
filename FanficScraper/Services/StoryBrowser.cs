@@ -1,7 +1,8 @@
+using FanficScraper.Data;
 using FanficScraper.FanFicFare;
 using Microsoft.EntityFrameworkCore;
 
-namespace FanficScraper.Data;
+namespace FanficScraper.Services;
 
 public class StoryBrowser
 {

@@ -9,12 +9,18 @@
 
     <ItemGroup>
       <PackageReference Include="Microsoft.AspNetCore.HttpOverrides" Version="2.2.0" />
+      <PackageReference Include="Microsoft.AspNetCore.Identity" Version="2.2.0" />
       <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.4" />
       <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.4">
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       </PackageReference>
       <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.0.4" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="words" />
+      <EmbeddedResource Include="words" />
     </ItemGroup>
 
 </Project>

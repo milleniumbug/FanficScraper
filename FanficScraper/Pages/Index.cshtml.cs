@@ -1,5 +1,6 @@
 ﻿using FanficScraper.Data;
 using FanficScraper.FanFicFare;
+using FanficScraper.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 

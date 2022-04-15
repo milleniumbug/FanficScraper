@@ -1,8 +1,12 @@
+using System.Security.Cryptography;
 using FanficScraper;
 using FanficScraper.Configurations;
 using FanficScraper.Data;
 using FanficScraper.FanFicFare;
+using FanficScraper.Services;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -16,6 +20,11 @@ builder.Services.AddRazorPages();
 
 builder.Services.AddScoped<StoryBrowser>();
 builder.Services.AddScoped<FanFicUpdater>();
+builder.Services.AddScoped<UserManager>();
+builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
+builder.Services.AddSingleton<PhraseGenerator>();
+builder.Services.TryAddSingleton(_ =>
+    RandomNumberGenerator.Create());
 builder.Services.AddScoped<IFanFicFare>(provider =>
 {
     var clients = new List<IFanFicFare>();

@@ -1,0 +1,22 @@
+﻿@page
+@model CreateUserModel
+@{
+    ViewData["Title"] = "Register";
+}
+
+<div>
+    @if (Model.ActivationPhrase == null || Model.PassPhrase == null)
+    {
+        <form method="post" asp-page="/CreateUser">
+            <div>
+                <button type="submit" class="w-100 btn btn-lg btn-primary">Register</button>
+            </div>
+        </form>
+    }
+    else
+    {
+        <p>This is your activation phrase. Send it to the owner of this server in order to activate:<br/><i>@Model.ActivationPhrase</i></p>
+        
+        <p>This is your secret password phrase:<br/><i>@Model.PassPhrase</i></p>
+    }
+</div>

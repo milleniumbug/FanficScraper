@@ -12,6 +12,8 @@ public class StoryContext : DbContext
     }
     
     public DbSet<Story> Stories { get; set; }
+    
+    public DbSet<User> Users { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -27,6 +29,12 @@ public class StoryContext : DbContext
             storyBuilder.HasIndex(story => story.StoryUpdated);
             storyBuilder.HasIndex(story => story.LastUpdated);
             storyBuilder.HasIndex(story => story.StoryName);
+        }
+        
+        {
+            var userBuilder = modelBuilder.Entity<User>();
+            userBuilder.HasIndex(user => user.Login).IsUnique();
+            userBuilder.HasIndex(user => new { user.CreationDate, user.IsActivated });
         }
     }
 }

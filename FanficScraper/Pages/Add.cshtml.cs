@@ -1,5 +1,6 @@
 ﻿using FanficScraper.Data;
 using FanficScraper.FanFicFare;
+using FanficScraper.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
@@ -8,23 +9,46 @@ namespace FanficScraper.Pages;
 public class AddModel : PageModel
 {
     private readonly FanFicUpdater fanFicUpdater;
+    private readonly UserManager userManager;
 
     public AddModel(
-        FanFicUpdater fanFicUpdater)
+        FanFicUpdater fanFicUpdater,
+        UserManager userManager)
     {
         this.fanFicUpdater = fanFicUpdater;
+        this.userManager = userManager;
     }
 
     public void OnGet()
     {
     }
 
-    public async Task<IActionResult> OnPostAsync(string url)
+    public async Task<IActionResult> OnPostAsync(string url, string passphrase)
     {
-        var id = await fanFicUpdater.UpdateStory(url);
-        return RedirectToPage("/StoryDetails", new
+        var result = await userManager.IsAuthorized(passphrase);
+
+        switch (result)
         {
-            id = id
-        });
+            case AuthorizationResult.Failure:
+                return RedirectToPage("/Message", new
+                {
+                    id = "NotAValidPhrase"
+                });
+            case AuthorizationResult.NeedsActivation:
+                return RedirectToPage("/Message", new
+                {
+                    id = "UserNotActivated"
+                });
+            case AuthorizationResult.Success:
+            {
+                var id = await fanFicUpdater.UpdateStory(url);
+                return RedirectToPage("/StoryDetails", new
+                {
+                    id = id
+                });
+            }
+        }
+
+        throw new InvalidOperationException();
     }
 }
