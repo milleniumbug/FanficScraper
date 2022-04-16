@@ -23,8 +23,10 @@ public class FanFicScraper : IFanFicFare
     {
         var addResponse = await this.client.PostAsJsonAsync("Api/Story", new AddStoryCommand()
         {
-            Url = storyUrl 
+            Url = storyUrl,
+            Passphrase = this.dataConfiguration.SecondaryFanFicScraperPassphrase
         });
+        addResponse.EnsureSuccessStatusCode();
 
         var jsonOpts = new JsonSerializerOptions()
         {
@@ -43,7 +45,8 @@ public class FanFicScraper : IFanFicFare
         }
         
         var getResponse = await this.client.GetAsync($"Api/Story/{addResult.Id}");
-
+        getResponse.EnsureSuccessStatusCode();
+        
         var getResult = await JsonSerializer.DeserializeAsync<GetStoryQueryResponse>(
             await getResponse.Content.ReadAsStreamAsync(), jsonOpts) ?? throw new JsonException();
 

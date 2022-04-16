@@ -18,32 +18,42 @@ public class FanFicUpdater
         this.fanFicFare = fanFicFare;
     }
 
-    public async Task<FanFicStoryDetails?> UpdateOldest(TimeSpan timeSpan)
+    public async Task<(FanFicStoryDetails? details, DateTime nextUpdateTime)> UpdateOldest(TimeSpan timeSpan)
     {
         var currentDate = DateTime.UtcNow;
         var date = currentDate - timeSpan;
+        var nextUpdateTime = currentDate + timeSpan;
 
-        var story = await this.storyContext.Stories
+        var stories = await this.storyContext.Stories
             .Where(story => !story.IsComplete)
-            .Where(story => story.LastUpdated < date)
             .OrderBy(story => story.LastUpdated)
-            .FirstOrDefaultAsync();
+            .Take(2)
+            .ToListAsync();
 
-        if (story == null)
+        if (stories.Count == 0)
         {
-            return null;
+            return (null, nextUpdateTime);
         }
+        
+        var oldest = stories.First();
+        var secondOldest = stories.ElementAtOrDefault(1);
 
+        if (secondOldest != null)
+        {
+            nextUpdateTime = secondOldest.LastUpdated + timeSpan;
+        }
+        
         try
         {
-            var fanFicStoryDetails = await RunFanFicFare(story.StoryUrl);
-            UpdateStoryEntity(story, fanFicStoryDetails, currentDate);
-            return fanFicStoryDetails;
+            var fanFicStoryDetails = await RunFanFicFare(oldest.StoryUrl);
+            UpdateStoryEntity(oldest, fanFicStoryDetails, currentDate);
+
+            return (fanFicStoryDetails, nextUpdateTime);
         }
         catch (Exception)
         {
-            story.LastUpdated = currentDate;
-            return null;
+            oldest.LastUpdated = currentDate;
+            return (null, nextUpdateTime);
         }
         finally
         {

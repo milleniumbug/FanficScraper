@@ -5,7 +5,7 @@ public class Story
     public int Id { get; set; }
     
     public string StoryName { get; set; }
-    
+
     public string StoryUrl { get; set; }
     
     public string AuthorName { get; set; }

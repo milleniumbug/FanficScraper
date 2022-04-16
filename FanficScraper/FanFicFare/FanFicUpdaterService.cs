@@ -1,10 +1,11 @@
+using System.Globalization;
+
 namespace FanficScraper.FanFicFare;
 
 public class FanFicUpdaterService : IHostedService, IDisposable
 {
     private readonly ILogger<FanFicUpdaterService> logger;
     private readonly IServiceScopeFactory scopeFactory;
-    private int executionCount = 0;
     private Timer? timer;
 
     public FanFicUpdaterService(
@@ -19,8 +20,7 @@ public class FanFicUpdaterService : IHostedService, IDisposable
     {
         logger.LogInformation("Timed Hosted Service running");
 
-        timer = new Timer(DoWork, null, TimeSpan.Zero, 
-            TimeSpan.FromSeconds(30));
+        timer = new Timer(DoWork, null, TimeSpan.Zero, Timeout.InfiniteTimeSpan);
 
         return Task.CompletedTask;
     }
@@ -29,10 +29,11 @@ public class FanFicUpdaterService : IHostedService, IDisposable
     {
         try
         {
+            var minimalTime = TimeSpan.FromSeconds(30);
             using var scope = this.scopeFactory.CreateScope();
             var fanFicUpdater = scope.ServiceProvider.GetRequiredService<FanFicUpdater>();
             logger.LogInformation("Updating a story");
-            var story = await fanFicUpdater.UpdateOldest(TimeSpan.FromDays(1));
+            var (story, nextUpdateIn) = await fanFicUpdater.UpdateOldest(TimeSpan.FromDays(1));
             if (story != null)
             {
                 logger.LogInformation("Updated {0} by {1}", story.Title, story.Author);
@@ -41,10 +42,21 @@ public class FanFicUpdaterService : IHostedService, IDisposable
             {
                 logger.LogInformation("No story needs update");
             }
+
+            var currentDate = DateTime.UtcNow;
+            var nextUpdate = nextUpdateIn - currentDate;
+            if (nextUpdate < minimalTime)
+            {
+                nextUpdate = minimalTime;
+            }
+            
+            timer?.Change(nextUpdate, Timeout.InfiniteTimeSpan);
+            logger.LogInformation("Next update on '{0}'", (currentDate + nextUpdate).ToString(CultureInfo.InvariantCulture));
         }
         catch (Exception e)
         {
             logger.LogError(e, "Failure while updating a chapter");
+            timer?.Change(TimeSpan.FromSeconds(30), Timeout.InfiniteTimeSpan);
         }
     }
 

@@ -12,8 +12,14 @@ public class ApiController : Controller
     [HttpPost("Story")]
     public async Task<IActionResult> AddStory(
         [FromBody] AddStoryCommand command,
-        [FromServices] FanFicUpdater updater)
+        [FromServices] FanFicUpdater updater,
+        [FromServices] UserManager userManager)
     {
+        if (await userManager.IsAuthorized(command.Passphrase) != AuthorizationResult.Success)
+        {
+            return this.Unauthorized();
+        }
+        
         var id = await updater.UpdateStory(command.Url);
         return this.Ok(new AddStoryCommandResponse()
         {

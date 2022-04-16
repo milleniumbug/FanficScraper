@@ -2,10 +2,14 @@ namespace FanficScraper.FanFicFare;
 
 public class CompositeFanFicFare : IFanFicFare
 {
+    private readonly ILogger<CompositeFanFicFare> logger;
     private readonly List<IFanFicFare> clients;
 
-    public CompositeFanFicFare(IEnumerable<IFanFicFare> clients)
+    public CompositeFanFicFare(
+        IEnumerable<IFanFicFare> clients,
+        ILogger<CompositeFanFicFare> logger)
     {
+        this.logger = logger;
         this.clients = clients.ToList();
     }
 
@@ -20,6 +24,7 @@ public class CompositeFanFicFare : IFanFicFare
             }
             catch (Exception e)
             {
+                this.logger.LogError(e, "Failed to run a subscraper");
                 ex = e;
             }
         }

@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Globalization;
 using System.Text.Json;
+using System.Web;
 using Microsoft.AspNetCore.Components.Web;
 
 namespace FanficScraper.FanFicFare;
@@ -54,8 +55,8 @@ public class FanFicFare : IFanFicFare
                        ?? throw new JsonException();
 
             return new FanFicStoryDetails(
-                author: meta.Author,
-                title: meta.Title,
+                author: HttpUtility.HtmlDecode(meta.Author),
+                title: HttpUtility.HtmlDecode(meta.Title),
                 publicationDate: DateTime.ParseExact(meta.DatePublished, "yyyy-MM-dd", CultureInfo.InvariantCulture),
                 websiteUpdateDate: DateTime.ParseExact(meta.DateUpdated, "yyyy-MM-dd", CultureInfo.InvariantCulture),
                 outputFilename: meta.OutputFilename,

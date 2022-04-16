@@ -7,5 +7,7 @@ namespace FanficScraper.Configurations
         public string StoriesDirectory { get; set; }
         
         public string SecondaryFanFicScraperUrl { get; set; }
+        
+        public string SecondaryFanFicScraperPassphrase { get; set; }
     }
 }

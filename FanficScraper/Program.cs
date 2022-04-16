@@ -32,7 +32,8 @@ builder.Services.AddScoped<IFanFicFare>(provider =>
     {
         clients.Add(new FanFicScraper(new HttpClient()
         {
-            BaseAddress = new Uri(dataConfiguration.SecondaryFanFicScraperUrl)
+            BaseAddress = new Uri(dataConfiguration.SecondaryFanFicScraperUrl),
+            Timeout = TimeSpan.FromMinutes(4) + TimeSpan.FromSeconds(30)
         }, Options.Create(dataConfiguration)));
     }
     clients.Add(new FanFicFare(new FanFicFareSettings()
@@ -41,7 +42,7 @@ builder.Services.AddScoped<IFanFicFare>(provider =>
         TargetDirectory = dataConfiguration.StoriesDirectory
     }));
 
-    return new CompositeFanFicFare(clients);
+    return new CompositeFanFicFare(clients, provider.GetRequiredService<ILogger<CompositeFanFicFare>>());
 });
 
 builder.Services.AddSqlite<StoryContext>(dataConfiguration.ConnectionString);
