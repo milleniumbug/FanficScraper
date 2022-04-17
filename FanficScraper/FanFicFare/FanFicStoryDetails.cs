@@ -7,8 +7,8 @@ public class FanFicStoryDetails
     public DateTime PublicationDate { get; }
     public DateTime WebsiteUpdateDate { get; }
     public string OutputFilename { get; }
-    public int NumChapters { get; }
-    public int NumWords { get; }
+    public int? NumChapters { get; }
+    public int? NumWords { get; }
     public string SiteUrl { get; }
     public string SiteAbbreviation { get; }
     public string StoryUrl { get; }
@@ -20,8 +20,8 @@ public class FanFicStoryDetails
         DateTime publicationDate,
         DateTime websiteUpdateDate,
         string outputFilename,
-        int numChapters,
-        int numWords,
+        int? numChapters,
+        int? numWords,
         string siteUrl,
         string siteAbbreviation,
         string storyUrl,
