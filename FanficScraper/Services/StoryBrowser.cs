@@ -63,6 +63,7 @@ public class StoryBrowser
     {
         return await this.storyContext.Stories
             .AsNoTracking()
+            .Where(story => story.StoryAdded != null)
             .OrderByDescending(story => story.StoryAdded)
             .Take(count)
             .ToListAsync();

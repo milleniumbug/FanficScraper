@@ -71,7 +71,10 @@ public class FanFicUpdater
             .Where(story => story.FileName == fanFicStoryDetails.OutputFilename)
             .FirstOrDefaultAsync();
 
-        story ??= new Story();
+        story ??= new Story()
+        {
+            StoryAdded = currentDate
+        };
 
         UpdateStoryEntity(story, fanFicStoryDetails, currentDate);
 
