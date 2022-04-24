@@ -23,7 +23,7 @@ public class StoryBrowser
         {
             IsAdult = true,
         };
-        var fanFicStoryDetails = await fanFicFare.Run(url, metadataOnly: true);
+        var fanFicStoryDetails = await fanFicFare.Run(url, metadataOnly: true, force: false);
 
         return await this.storyContext.Stories
             .AsNoTracking()

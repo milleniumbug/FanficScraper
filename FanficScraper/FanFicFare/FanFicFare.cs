@@ -15,7 +15,7 @@ public class FanFicFare : IFanFicFare
         this.settings = settings;
     }
     
-    public Task<FanFicStoryDetails> Run(string storyUrl, bool metadataOnly = false)
+    public Task<FanFicStoryDetails> Run(string storyUrl, bool metadataOnly = false, bool force = false)
     {
         return Task.Run(() =>
         {
@@ -39,6 +39,11 @@ public class FanFicFare : IFanFicFare
             if (metadataOnly)
             {
                 psi.ArgumentList.Add("--no-output");
+            }
+
+            if (!force)
+            {
+                psi.ArgumentList.Add("--update-epub");
             }
 
             psi.ArgumentList.Add("--json-meta");

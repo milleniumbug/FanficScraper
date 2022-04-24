@@ -13,14 +13,14 @@ public class CompositeFanFicFare : IFanFicFare
         this.clients = clients.ToList();
     }
 
-    public async Task<FanFicStoryDetails> Run(string storyUrl, bool metadataOnly = false)
+    public async Task<FanFicStoryDetails> Run(string storyUrl, bool metadataOnly = false, bool force = false)
     {
         Exception ex = new InvalidOperationException();
         foreach (var client in clients)
         {
             try
             {
-                return await client.Run(storyUrl, metadataOnly);
+                return await client.Run(storyUrl, metadataOnly, force);
             }
             catch (Exception e)
             {

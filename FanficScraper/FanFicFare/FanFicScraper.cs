@@ -19,12 +19,13 @@ public class FanFicScraper : IFanFicFare
         this.dataConfiguration = dataConfiguration.Value;
     }
     
-    public async Task<FanFicStoryDetails> Run(string storyUrl, bool metadataOnly = false)
+    public async Task<FanFicStoryDetails> Run(string storyUrl, bool metadataOnly = false, bool force = false)
     {
         var addResponse = await this.client.PostAsJsonAsync("Api/Story", new AddStoryCommand()
         {
             Url = storyUrl,
-            Passphrase = this.dataConfiguration.SecondaryFanFicScraperPassphrase
+            Passphrase = this.dataConfiguration.SecondaryFanFicScraperPassphrase,
+            Force = force
         });
         addResponse.EnsureSuccessStatusCode();
 

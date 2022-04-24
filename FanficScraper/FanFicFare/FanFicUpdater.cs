@@ -45,7 +45,7 @@ public class FanFicUpdater
         
         try
         {
-            var fanFicStoryDetails = await RunFanFicFare(oldest.StoryUrl);
+            var fanFicStoryDetails = await RunFanFicFare(oldest.StoryUrl, force: false);
             UpdateStoryEntity(oldest, fanFicStoryDetails, currentDate);
 
             return (fanFicStoryDetails, nextUpdateTime);
@@ -61,9 +61,9 @@ public class FanFicUpdater
         }
     }
 
-    public async Task<string> UpdateStory(string url)
+    public async Task<string> UpdateStory(string url, bool force)
     {
-        var fanFicStoryDetails = await RunFanFicFare(url);
+        var fanFicStoryDetails = await RunFanFicFare(url, force: force);
         
         var currentDate = DateTime.UtcNow;
         
@@ -100,8 +100,8 @@ public class FanFicUpdater
         story.StoryUrl = fanFicStoryDetails.StoryUrl;
     }
 
-    private async Task<FanFicStoryDetails> RunFanFicFare(string url)
+    private async Task<FanFicStoryDetails> RunFanFicFare(string url, bool force)
     {
-        return await fanFicFare.Run(url, metadataOnly: false);
+        return await fanFicFare.Run(url, metadataOnly: false, force: force);
     }
 }

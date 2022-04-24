@@ -41,7 +41,7 @@ public class AddModel : PageModel
                 });
             case AuthorizationResult.Success:
             {
-                var id = await fanFicUpdater.UpdateStory(url);
+                var id = await fanFicUpdater.UpdateStory(url, force: true);
                 return RedirectToPage("/StoryDetails", new
                 {
                     id = id

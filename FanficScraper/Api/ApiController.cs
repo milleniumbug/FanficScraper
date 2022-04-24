@@ -20,7 +20,7 @@ public class ApiController : Controller
             return this.Unauthorized();
         }
         
-        var id = await updater.UpdateStory(command.Url);
+        var id = await updater.UpdateStory(command.Url, command.Force ?? false);
         return this.Ok(new AddStoryCommandResponse()
         {
             Id = id
