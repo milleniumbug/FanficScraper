@@ -14,6 +14,8 @@ public class Story
     
     public DateTime LastUpdated { get; set; }
     
+    public DateTime? StoryAdded { get; set; }
+    
     public bool IsComplete { get; set; }
     
     public DateTime StoryUpdated { get; set; }
