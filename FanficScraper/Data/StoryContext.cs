@@ -29,6 +29,7 @@ public class StoryContext : DbContext
             storyBuilder.HasIndex(story => story.StoryUpdated);
             storyBuilder.HasIndex(story => story.LastUpdated);
             storyBuilder.HasIndex(story => story.StoryName);
+            storyBuilder.HasIndex(story => story.StoryAdded);
         }
         
         {

@@ -12,6 +12,8 @@ public class IndexModel : PageModel
     private readonly StoryBrowser storyBrowser;
     public IEnumerable<Data.Story> UpdatedStories { get; private set; }
         = Enumerable.Empty<Data.Story>();
+    
+    public IEnumerable<Data.Story>? RecentlyAdded { get; private set; }
 
     public string Name { get; private set; } = "";
 
@@ -35,6 +37,7 @@ public class IndexModel : PageModel
         {
             var lastUpdated = await this.storyBrowser.FindLastUpdated(15);
             this.UpdatedStories = lastUpdated;
+            this.RecentlyAdded = await this.storyBrowser.FindRecentlyAdded(15); 
         }
     }
 }
