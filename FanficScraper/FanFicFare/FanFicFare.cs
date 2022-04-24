@@ -9,10 +9,12 @@ namespace FanficScraper.FanFicFare;
 public class FanFicFare : IFanFicFare
 {
     private readonly FanFicFareSettings settings;
+    private readonly ILogger<FanFicFare> logger;
 
-    public FanFicFare(FanFicFareSettings settings)
+    public FanFicFare(FanFicFareSettings settings, ILogger<FanFicFare> logger)
     {
         this.settings = settings;
+        this.logger = logger;
     }
     
     public Task<FanFicStoryDetails> Run(string storyUrl, bool metadataOnly = false, bool force = false)
@@ -41,10 +43,10 @@ public class FanFicFare : IFanFicFare
                 psi.ArgumentList.Add("--no-output");
             }
 
-            if (!force)
+            /*if (!force)
             {
                 psi.ArgumentList.Add("--update-epub");
-            }
+            }*/
 
             psi.ArgumentList.Add("--json-meta");
             psi.ArgumentList.Add("--no-meta-chapters");

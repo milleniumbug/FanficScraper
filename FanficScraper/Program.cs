@@ -40,7 +40,7 @@ builder.Services.AddScoped<IFanFicFare>(provider =>
     {
         IsAdult = true,
         TargetDirectory = dataConfiguration.StoriesDirectory
-    }));
+    }, provider.GetRequiredService<ILogger<FanFicFare>>()));
 
     return new CompositeFanFicFare(clients, provider.GetRequiredService<ILogger<CompositeFanFicFare>>());
 });

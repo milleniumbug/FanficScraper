@@ -66,6 +66,24 @@ public class ApiController : Controller
 
         return this.NotFound();
     }
+    
+    [HttpPost("Metadata")]
+    public async Task<IActionResult> GetMetadata(
+        [FromBody] GetMetadataQuery query,
+        [FromServices] IFanFicFare fanFicFare)
+    {
+        var fanFicStoryDetails = await fanFicFare.Run(query.Url, metadataOnly: true, force: false);
+
+        return this.Ok(new GetMetadataQueryResponse()
+        {
+            Id = fanFicStoryDetails.OutputFilename,
+            Author = fanFicStoryDetails.Author,
+            Name = fanFicStoryDetails.Title,
+            IsComplete = fanFicStoryDetails.IsCompleted,
+            StoryUpdated = fanFicStoryDetails.WebsiteUpdateDate,
+            Url = fanFicStoryDetails.StoryUrl
+        });
+    }
 
     private IEnumerable<StoryDetails> Map(IEnumerable<Story> stories)
     {
