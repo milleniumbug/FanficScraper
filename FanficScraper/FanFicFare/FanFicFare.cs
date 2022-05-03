@@ -37,6 +37,12 @@ public class FanFicFare : IFanFicFare
                 psi.ArgumentList.Add("-o");
                 psi.ArgumentList.Add("is_adult=true");
             }
+            
+            if (settings.IncludeImages)
+            {
+                psi.ArgumentList.Add("-o");
+                psi.ArgumentList.Add("include_images=true");
+            }
 
             if (metadataOnly)
             {

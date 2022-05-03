@@ -39,7 +39,8 @@ builder.Services.AddScoped<IFanFicFare>(provider =>
     clients.Add(new FanFicFare(new FanFicFareSettings()
     {
         IsAdult = true,
-        TargetDirectory = dataConfiguration.StoriesDirectory
+        TargetDirectory = dataConfiguration.StoriesDirectory,
+        IncludeImages = true
     }, provider.GetRequiredService<ILogger<FanFicFare>>()));
 
     return new CompositeFanFicFare(clients, provider.GetRequiredService<ILogger<CompositeFanFicFare>>());
