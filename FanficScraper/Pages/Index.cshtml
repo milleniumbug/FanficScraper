@@ -15,23 +15,13 @@
         </div>
     </form>
     
+    <h3>@Model.Description</h3>
     <ul>
         @{
-            @foreach (var story in Model.UpdatedStories)
+            @foreach (var story in Model.Stories)
             {
                 <li><a href="/StoryDetails/@story.FileName">@story.StoryName</a> by @story.AuthorName. @(story.IsComplete ? "Complete" : "Incomplete") Updated: @story.StoryUpdated.ToString("yyyy-MM-dd"). <a href="/Story/@story.FileName">Download</a></li>
             }
         }
     </ul>
-    
-    @if (Model.RecentlyAdded != null && Model.RecentlyAdded.Any())
-    {
-        <h3>Recently added</h3>
-        <ul>
-            @foreach (var story in Model.RecentlyAdded)
-            {
-                <li><a href="/StoryDetails/@story.FileName">@story.StoryName</a> by @story.AuthorName. @(story.IsComplete ? "Complete" : "Incomplete") Updated: @story.StoryUpdated.ToString("yyyy-MM-dd"). <a href="/Story/@story.FileName">Download</a></li>
-            }
-        </ul>
-    }
 </div>

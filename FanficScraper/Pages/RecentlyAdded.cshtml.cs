@@ -6,18 +6,17 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace FanficScraper.Pages;
 
-public class IndexModel : PageModel
+public class RecentlyAddedModel : PageModel
 {
     private readonly FanFicUpdater fanFicUpdater;
     private readonly StoryBrowser storyBrowser;
+    
     public IEnumerable<Data.Story> Stories { get; private set; }
         = Enumerable.Empty<Data.Story>();
 
     public string Name { get; private set; } = "";
-    
-    public string Description { get; private set; } = "";
 
-    public IndexModel(
+    public RecentlyAddedModel(
         FanFicUpdater fanFicUpdater,
         StoryBrowser storyBrowser)
     {
@@ -25,20 +24,9 @@ public class IndexModel : PageModel
         this.storyBrowser = storyBrowser;
     }
 
-    public async Task OnGetAsync(string? name)
+    public async Task OnGetAsync()
     {
-        if (!string.IsNullOrEmpty(name))
-        {
-            var stories = await this.storyBrowser.FindByName(name);
-            this.Stories = stories;
-            this.Name = name;
-            this.Description = "Search results";
-        }
-        else
-        {
-            var lastUpdated = await this.storyBrowser.FindLastUpdated(30);
-            this.Stories = lastUpdated;
-            this.Description = "Recently updated";
-        }
+        this.Stories = await this.storyBrowser.FindRecentlyAdded(
+            DateTime.UtcNow - TimeSpan.FromDays(60));
     }
 }

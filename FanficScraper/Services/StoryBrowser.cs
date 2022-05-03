@@ -69,4 +69,14 @@ public class StoryBrowser
             .Take(count)
             .ToListAsync();
     }
+    
+    public async Task<IEnumerable<Story>> FindRecentlyAdded(DateTime lastAdded)
+    {
+        return await this.storyContext.Stories
+            .AsNoTracking()
+            .Where(story => story.StoryAdded != null)
+            .Where(story => lastAdded < story.StoryAdded)
+            .OrderByDescending(story => story.StoryAdded)
+            .ToListAsync();
+    }
 }
