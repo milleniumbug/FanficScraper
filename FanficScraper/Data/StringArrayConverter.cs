@@ -6,8 +6,8 @@ public class StringArrayConverter : ValueConverter<IReadOnlyList<string>, string
 {
     public StringArrayConverter() :
         base(
-            v => string.Join("\0", v),
-            v => v.Split('\0', StringSplitOptions.None))
+            v => string.Join("\u0001", v),
+            v => v.Split('\u0001', StringSplitOptions.None))
     {
     }
 }

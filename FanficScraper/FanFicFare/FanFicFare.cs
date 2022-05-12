@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Text.Json;
 using System.Web;
+using HtmlAgilityPack;
 using Microsoft.AspNetCore.Components.Web;
 
 namespace FanficScraper.FanFicFare;
@@ -89,15 +90,24 @@ public class FanFicFare : IFanFicFare
                 descriptionParagraphs: MakeDescriptionParagraphs(meta.DescriptionHTML));
         });
     }
-
-    //[return: NotNullIfNotNull("descriptionHtml")]
+    
     private IReadOnlyList<string>? MakeDescriptionParagraphs(string? descriptionHtml)
     {
-        if (descriptionHtml == null)
+        if (string.IsNullOrWhiteSpace(descriptionHtml))
         {
             return null;
         }
 
-        return null; // TODO
+        try
+        {
+            var document = new HtmlDocument();
+            document.LoadHtml(descriptionHtml);
+            return document.DocumentNode.InnerText.Split("\n", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Attempt at parsing the description failed");
+            return null;
+        }
     }
 }

@@ -11,9 +11,55 @@
         By @Model.Story.AuthorName<br/><br/>
         @(Model.Story.IsComplete ? "Complete" : "Incomplete")<br/>
         Last updated: @Model.Story.StoryUpdated.ToString("yyyy-MM-dd")<br/>
+        @if (Model.Story.StoryData?.NumChapters != null)
+        {
+            <span>Chapter count: @Model.Story.StoryData.NumChapters</span><br/>
+        }
+        @if (Model.Story.StoryData?.NumWords != null)
+        {
+            <span>Word count: @Model.Story.StoryData.NumWords</span><br/>
+        }
+        @if (Model.Story.StoryData?.Category != null)
+        {
+            <span>Category: @string.Join(", ", Model.Story.StoryData.Category)</span><br/>
+        }
+        @if (Model.Story.StoryData?.Characters != null)
+        {
+            <span>Characters: @string.Join(", ", Model.Story.StoryData.Characters)</span><br/>
+        }
+        @if (Model.Story.StoryData?.Genre != null)
+        {
+            <span>Genre: @string.Join(", ", Model.Story.StoryData.Genre)</span><br/>
+        }
+        @if (Model.Story.StoryData?.Relationships != null)
+        {
+            <span>Relationships: @string.Join(", ", Model.Story.StoryData.Relationships)</span><br/>
+        }
+        @if (Model.Story.StoryData?.Rating != null)
+        {
+            <span>Rating: @Model.Story.StoryData.Rating</span><br/>
+        }
+        @if (Model.Story.StoryData?.Warnings != null)
+        {
+            <span>Warnings: @string.Join(", ", Model.Story.StoryData.Warnings)</span><br/>
+        }
         <br/>
         <a href="@Model.Story.StoryUrl">Go to the story</a><br/>
         <a href="/Story/@Model.Story.FileName">Download EPUB</a> 
+        <br/>
+        <br/>
+        @if (Model.Story.StoryData?.DescriptionParagraphs != null)
+        {
+            <div>
+                <h2>Summary:</h2>
+                @foreach (var paragraph in Model.Story.StoryData.DescriptionParagraphs)
+                {
+                    <div>
+                        @paragraph
+                    </div>
+                }
+            </div>
+        }
     </div>
 }
 else
