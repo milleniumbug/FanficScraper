@@ -25,6 +25,7 @@ public class FanFicUpdater
         var nextUpdateTime = currentDate + timeSpan;
 
         var stories = await this.storyContext.Stories
+            .Include(story => story.StoryData)
             .Where(story => !story.IsComplete)
             .OrderBy(story => story.LastUpdated)
             .Take(2)
@@ -68,6 +69,7 @@ public class FanFicUpdater
         var currentDate = DateTime.UtcNow;
         
         var story = await this.storyContext.Stories
+            .Include(story => story.StoryData)
             .Where(story => story.FileName == fanFicStoryDetails.OutputFilename)
             .FirstOrDefaultAsync();
 
@@ -98,6 +100,17 @@ public class FanFicUpdater
         story.LastUpdated = currentDate;
         story.StoryUpdated = fanFicStoryDetails.WebsiteUpdateDate;
         story.StoryUrl = fanFicStoryDetails.StoryUrl;
+
+        story.StoryData ??= new StoryData();
+        story.StoryData.Category = fanFicStoryDetails.Category;
+        story.StoryData.Characters = fanFicStoryDetails.Characters;
+        story.StoryData.Genre = fanFicStoryDetails.Genre;
+        story.StoryData.Rating = fanFicStoryDetails.Rating;
+        story.StoryData.Relationships = fanFicStoryDetails.Relationships;
+        story.StoryData.Warnings = fanFicStoryDetails.Warnings;
+        story.StoryData.DescriptionParagraphs = fanFicStoryDetails.DescriptionParagraphs;
+        story.StoryData.NumChapters = fanFicStoryDetails.NumChapters;
+        story.StoryData.NumWords = fanFicStoryDetails.NumWords;
     }
 
     private async Task<FanFicStoryDetails> RunFanFicFare(string url, bool force)

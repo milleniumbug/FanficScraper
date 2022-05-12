@@ -1,12 +1,12 @@
-namespace FanficScraper.Api;
+namespace FanficScraper.Data;
 
-public record StoryDetails
+public class StoryData
 {
-    public string Author { get; set; }
-    public string Name { get; set; }
-    public string Url { get; set; }
-    public bool IsComplete { get; set; }
-    public DateTime StoryUpdated { get; set; }
+    public int Id { get; set; }
+    
+    public int StoryId { get; set; }
+    public Story Story { get; set; }
+    
     public IReadOnlyList<string>? Category { get; set; }
     
     public IReadOnlyList<string>? Characters { get; set; }

@@ -13,6 +13,13 @@ public class FanFicStoryDetails
     public string SiteAbbreviation { get; }
     public string StoryUrl { get; }
     public bool IsCompleted { get; }
+    public IReadOnlyList<string>? Category { get; }
+    public IReadOnlyList<string>? Characters { get; }
+    public IReadOnlyList<string>? Genre { get; }
+    public IReadOnlyList<string>? Relationships { get; }
+    public string? Rating { get; }
+    public IReadOnlyList<string>? Warnings { get; }
+    public IReadOnlyList<string>? DescriptionParagraphs { get; }
 
     public FanFicStoryDetails(
         string author,
@@ -25,7 +32,14 @@ public class FanFicStoryDetails
         string siteUrl,
         string siteAbbreviation,
         string storyUrl,
-        bool isCompleted)
+        bool isCompleted,
+        IReadOnlyList<string>? category,
+        IReadOnlyList<string>? characters,
+        IReadOnlyList<string>? genre,
+        IReadOnlyList<string>? relationships,
+        string? rating,
+        IReadOnlyList<string>? warnings,
+        IReadOnlyList<string>? descriptionParagraphs)
     {
         Author = author;
         Title = title;
@@ -38,5 +52,12 @@ public class FanFicStoryDetails
         SiteAbbreviation = siteAbbreviation;
         StoryUrl = storyUrl;
         IsCompleted = isCompleted;
+        Category = category;
+        Characters = characters;
+        Genre = genre;
+        Relationships = relationships;
+        Rating = rating;
+        Warnings = warnings;
+        DescriptionParagraphs = descriptionParagraphs;
     }
 }

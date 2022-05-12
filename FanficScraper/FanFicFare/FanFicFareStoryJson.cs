@@ -18,6 +18,9 @@ public class FanFicFareStoryJson
 
     [JsonPropertyName("category")]
     public string Category { get; set; }
+    
+    [JsonPropertyName("characters")]
+    public string? Characters { get; set; }
 
     [JsonPropertyName("dateCreated")]
     public string DateCreated { get; set; }
@@ -29,7 +32,10 @@ public class FanFicFareStoryJson
     public string DateUpdated { get; set; }
 
     [JsonPropertyName("description")]
-    public string Description { get; set; }
+    public string DescriptionHTML { get; set; }
+    
+    [JsonPropertyName("genre")]
+    public string? Genre { get; set; }
     
     [JsonPropertyName("output_filename")]
     public string OutputFilename { get; set; }
@@ -39,12 +45,18 @@ public class FanFicFareStoryJson
 
     [JsonPropertyName("numWords")]
     public string NumWords { get; set; }
+    
+    [JsonPropertyName("rating")]
+    public string? Rating { get; set; }
 
     [JsonPropertyName("sectionUrl")]
     public string SectionUrl { get; set; }
 
     [JsonPropertyName("series")]
     public string Series { get; set; }
+    
+    [JsonPropertyName("ships")]
+    public string? Relationships { get; set; }
 
     [JsonPropertyName("site")]
     public string Site { get; set; }
@@ -57,10 +69,16 @@ public class FanFicFareStoryJson
 
     [JsonPropertyName("storyId")]
     public string StoryId { get; set; }
+    
+    [JsonPropertyName("storynotes")]
+    public string? StoryNotes { get; set; }
 
     [JsonPropertyName("storyUrl")]
     public string StoryUrl { get; set; }
 
     [JsonPropertyName("title")]
     public string Title { get; set; }
+    
+    [JsonPropertyName("warnings")]
+    public string? Warnings { get; set; }
 }

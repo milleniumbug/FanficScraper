@@ -21,4 +21,6 @@ public class Story
     public DateTime StoryUpdated { get; set; }
     
     public string FileName { get; set; }
+    
+    public StoryData? StoryData { get; set; }
 }

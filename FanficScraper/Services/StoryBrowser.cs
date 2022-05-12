@@ -26,6 +26,7 @@ public class StoryBrowser
         var fanFicStoryDetails = await fanFicFare.Run(url, metadataOnly: true, force: false);
 
         return await this.storyContext.Stories
+            .Include(story => story.StoryData)
             .AsNoTracking()
             .FirstOrDefaultAsync(story => story.StoryUrl == url);
     }
@@ -33,6 +34,7 @@ public class StoryBrowser
     public async Task<Story?> FindById(string id)
     {
         return await this.storyContext.Stories
+            .Include(story => story.StoryData)
             .AsNoTracking()
             .FirstOrDefaultAsync(story => story.FileName == id);
     }
@@ -44,6 +46,7 @@ public class StoryBrowser
             .Replace("%", "!%")
             .Replace("_", "!_");
         return await this.storyContext.Stories
+            .Include(story => story.StoryData)
             .AsNoTracking()
             .Where(story => EF.Functions.Like(story.StoryName, $"%{escapedName}%", "!"))
             .Take(10)
@@ -53,6 +56,7 @@ public class StoryBrowser
     public async Task<IEnumerable<Story>> FindLastUpdated(int count)
     {
         return await this.storyContext.Stories
+            .Include(story => story.StoryData)
             .AsNoTracking()
             .OrderByDescending(story => story.StoryUpdated)
             .ThenByDescending(story => story.LastUpdated)
@@ -63,6 +67,7 @@ public class StoryBrowser
     public async Task<IEnumerable<Story>> FindRecentlyAdded(int count)
     {
         return await this.storyContext.Stories
+            .Include(story => story.StoryData)
             .AsNoTracking()
             .Where(story => story.StoryAdded != null)
             .OrderByDescending(story => story.StoryAdded)
@@ -73,6 +78,7 @@ public class StoryBrowser
     public async Task<IEnumerable<Story>> FindRecentlyAdded(DateTime lastAdded)
     {
         return await this.storyContext.Stories
+            .Include(story => story.StoryData)
             .AsNoTracking()
             .Where(story => story.StoryAdded != null)
             .Where(story => lastAdded < story.StoryAdded)

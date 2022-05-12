@@ -41,7 +41,16 @@ public class ApiController : Controller
                 Name = story.StoryName,
                 Url = story.StoryUrl,
                 IsComplete = story.IsComplete,
-                StoryUpdated = story.StoryUpdated
+                StoryUpdated = story.StoryUpdated,
+                Category = story.StoryData?.Category,
+                Characters = story.StoryData?.Characters,
+                Genre = story.StoryData?.Genre,
+                Relationships = story.StoryData?.Relationships,
+                Rating = story.StoryData?.Rating,
+                Warnings = story.StoryData?.Warnings,
+                DescriptionParagraphs = story.StoryData?.DescriptionParagraphs,
+                NumChapters = story.StoryData?.NumChapters,
+                NumWords = story.StoryData?.NumWords
             });
         }
         else
@@ -81,7 +90,16 @@ public class ApiController : Controller
             Name = fanFicStoryDetails.Title,
             IsComplete = fanFicStoryDetails.IsCompleted,
             StoryUpdated = fanFicStoryDetails.WebsiteUpdateDate,
-            Url = fanFicStoryDetails.StoryUrl
+            Url = fanFicStoryDetails.StoryUrl,
+            Category = fanFicStoryDetails.Category,
+            Characters = fanFicStoryDetails.Characters,
+            Genre = fanFicStoryDetails.Genre,
+            Relationships = fanFicStoryDetails.Relationships,
+            Rating = fanFicStoryDetails.Rating,
+            Warnings = fanFicStoryDetails.Warnings,
+            DescriptionParagraphs = fanFicStoryDetails.DescriptionParagraphs,
+            NumChapters = fanFicStoryDetails.NumChapters,
+            NumWords = fanFicStoryDetails.NumWords
         });
     }
 
@@ -93,7 +111,16 @@ public class ApiController : Controller
             Name = story.StoryName,
             Url = story.StoryUrl,
             IsComplete = story.IsComplete,
-            StoryUpdated = story.StoryUpdated
+            StoryUpdated = story.StoryUpdated,
+            Category = story.StoryData?.Category,
+            Characters = story.StoryData?.Characters,
+            Genre = story.StoryData?.Genre,
+            Relationships = story.StoryData?.Relationships,
+            Rating = story.StoryData?.Rating,
+            Warnings = story.StoryData?.Warnings,
+            DescriptionParagraphs = story.StoryData?.DescriptionParagraphs,
+            NumChapters = story.StoryData?.NumChapters,
+            NumWords = story.StoryData?.NumWords
         });
     }
 }

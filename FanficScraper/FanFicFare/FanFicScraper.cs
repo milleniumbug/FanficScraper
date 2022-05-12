@@ -77,12 +77,19 @@ public class FanFicScraper : IFanFicFare
                 publicationDate: DateTime.MinValue,
                 websiteUpdateDate: getResult.StoryUpdated,
                 outputFilename: id,
-                numChapters: null,
-                numWords: null,
+                numChapters: getResult.NumChapters,
+                numWords: getResult.NumWords,
                 siteUrl: new Uri(getResult.Url).Host,
                 siteAbbreviation: "",
                 storyUrl: getResult.Url,
-                isCompleted: getResult.IsComplete);
+                isCompleted: getResult.IsComplete,
+                category: getResult.Category,
+                characters: getResult.Characters,
+                genre: getResult.Genre,
+                relationships: getResult.Relationships,
+                rating: getResult.Rating,
+                warnings: getResult.Warnings,
+                descriptionParagraphs: getResult.DescriptionParagraphs);
         }
     }
 }

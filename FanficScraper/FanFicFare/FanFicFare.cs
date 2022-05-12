@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Text.Json;
 using System.Web;
@@ -78,7 +79,25 @@ public class FanFicFare : IFanFicFare
                 siteUrl: meta.Site,
                 siteAbbreviation: meta.SiteAbbreviation,
                 storyUrl: meta.StoryUrl,
-                isCompleted: meta.Status == "Completed");
+                isCompleted: meta.Status == "Completed",
+                category: string.IsNullOrEmpty(meta.Category) ? null : meta.Category.Split(',', StringSplitOptions.TrimEntries),
+                characters: string.IsNullOrEmpty(meta.Characters) ? null : meta.Characters.Split(',', StringSplitOptions.TrimEntries),
+                genre: string.IsNullOrEmpty(meta.Genre) ? null : meta.Genre.Split(',', StringSplitOptions.TrimEntries),
+                relationships: string.IsNullOrEmpty(meta.Relationships) ? null : meta.Relationships.Split(',', StringSplitOptions.TrimEntries),
+                rating: string.IsNullOrEmpty(meta.Rating) ? null : meta.Rating,
+                warnings: string.IsNullOrEmpty(meta.Warnings) ? null : meta.Warnings.Split(',', StringSplitOptions.TrimEntries),
+                descriptionParagraphs: MakeDescriptionParagraphs(meta.DescriptionHTML));
         });
+    }
+
+    //[return: NotNullIfNotNull("descriptionHtml")]
+    private IReadOnlyList<string>? MakeDescriptionParagraphs(string? descriptionHtml)
+    {
+        if (descriptionHtml == null)
+        {
+            return null;
+        }
+
+        return null; // TODO
     }
 }

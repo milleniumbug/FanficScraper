@@ -11,6 +11,8 @@ public class StoryContext : DbContext
         
     }
     
+    public DbSet<StoryData> StoryData { get; set; }
+    
     public DbSet<Story> Stories { get; set; }
     
     public DbSet<User> Users { get; set; }
@@ -30,12 +32,25 @@ public class StoryContext : DbContext
             storyBuilder.HasIndex(story => story.LastUpdated);
             storyBuilder.HasIndex(story => story.StoryName);
             storyBuilder.HasIndex(story => story.StoryAdded);
+
+            storyBuilder
+                .HasOne(story => story.StoryData)
+                .WithOne(storyData => storyData.Story)
+                .HasForeignKey<StoryData>(storyData => storyData.StoryId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
-        
+
         {
             var userBuilder = modelBuilder.Entity<User>();
             userBuilder.HasIndex(user => user.Login).IsUnique();
             userBuilder.HasIndex(user => new { user.CreationDate, user.IsActivated });
         }
+    }
+    
+    protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
+    {
+        configurationBuilder
+            .Properties<IReadOnlyList<string>>()
+            .HaveConversion<StringArrayConverter, StringArrayComparer>();
     }
 }
