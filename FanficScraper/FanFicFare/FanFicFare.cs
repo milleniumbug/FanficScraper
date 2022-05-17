@@ -102,7 +102,8 @@ public class FanFicFare : IFanFicFare
         {
             var document = new HtmlDocument();
             document.LoadHtml(descriptionHtml);
-            return document.DocumentNode.InnerText.Split("\n", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            // https://github.com/zzzprojects/html-agility-pack/issues/427
+            return HttpUtility.HtmlDecode(document.DocumentNode.InnerText).Split("\n", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
         }
         catch (Exception ex)
         {
