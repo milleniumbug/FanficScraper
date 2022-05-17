@@ -23,8 +23,21 @@ public class AddModel : PageModel
     {
     }
 
-    public async Task<IActionResult> OnPostAsync(string url, string passphrase)
+    public async Task<IActionResult> OnPostAsync(string? url, string? passphrase)
     {
+        if (url == null)
+        {
+            return RedirectToPage("/Add");
+        }
+
+        if (passphrase == null)
+        {
+            return RedirectToPage("/Message", new
+            {
+                id = "NotAValidPhrase"
+            });
+        }
+        
         var result = await userManager.IsAuthorized(passphrase);
 
         switch (result)
