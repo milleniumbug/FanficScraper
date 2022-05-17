@@ -41,8 +41,8 @@ public class AddModel : PageModel
                 });
             case AuthorizationResult.Success:
             {
-                var id = await fanFicUpdater.UpdateStory(url, force: true);
-                return RedirectToPage("/StoryDetails", new
+                var id = await fanFicUpdater.ScheduleUpdateStory(url, force: true);
+                return RedirectToPage("/DownloadJob", new
                 {
                     id = id
                 });

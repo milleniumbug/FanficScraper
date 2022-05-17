@@ -87,6 +87,89 @@ public class FanFicUpdater
         return story.FileName;
     }
 
+    public async Task<JobDetails?> GetScheduledJobDetails(Guid id)
+    {
+        return await this.storyContext.DownloadJobs
+            .Where(downloadJob => downloadJob.Id == id)
+            .Select(downloadJob => new JobDetails(
+                downloadJob.Status,
+                downloadJob.Url,
+                downloadJob.FileName))
+            .FirstOrDefaultAsync();
+    }
+    
+    public async Task<FanFicStoryDetails?> UpdateNextScheduled()
+    {
+        var downloadJob = await this.storyContext.DownloadJobs
+            .OrderBy(downloadJob => downloadJob.Status)
+            .ThenBy(downloadJob => downloadJob.AddedDate)
+            .Where(downloadJob => downloadJob.Status == DownloadJobStatus.NotYetStarted || downloadJob.Status == DownloadJobStatus.Failed)
+            .FirstOrDefaultAsync();
+
+        if (downloadJob == null)
+        {
+            return null;
+        }
+
+        try
+        {
+            downloadJob.Status = DownloadJobStatus.Started;
+            await this.storyContext.SaveChangesAsync();
+            
+            var fanFicStoryDetails = await RunFanFicFare(downloadJob.Url, force: downloadJob.Force);
+
+            var story = await this.storyContext.Stories
+                .Include(story => story.StoryData)
+                .Where(story => story.FileName == fanFicStoryDetails.OutputFilename)
+                .FirstOrDefaultAsync();
+            
+            var currentDate = DateTime.UtcNow;
+            story ??= new Story()
+            {
+                StoryAdded = currentDate
+            };
+
+            UpdateStoryEntity(story, fanFicStoryDetails, currentDate);
+
+            this.storyContext.Attach(story);
+
+            downloadJob.Status = DownloadJobStatus.Succeeded;
+            downloadJob.FileName = story.FileName;
+            downloadJob.FinishDate = currentDate;
+
+            return fanFicStoryDetails;
+        }
+        catch (Exception ex)
+        {
+            downloadJob.Status = DownloadJobStatus.Failed;
+            throw;
+        }
+        finally
+        {
+            await storyContext.SaveChangesAsync();            
+        }
+    }
+
+    public async Task<Guid> ScheduleUpdateStory(string url, bool force)
+    {
+        var downloadJob = new DownloadJob()
+        {
+            Id = Guid.NewGuid(),
+            Status = DownloadJobStatus.NotYetStarted,
+            Url = url,
+            Force = force,
+            AddedDate = DateTime.UtcNow,
+            FileName = null,
+            FinishDate = null
+        };
+
+        this.storyContext.Add(downloadJob);
+
+        await this.storyContext.SaveChangesAsync();
+
+        return downloadJob.Id;
+    }
+
     private void UpdateStoryEntity(
         Story story,
         FanFicStoryDetails fanFicStoryDetails,

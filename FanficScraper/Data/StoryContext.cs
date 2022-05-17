@@ -16,6 +16,8 @@ public class StoryContext : DbContext
     public DbSet<Story> Stories { get; set; }
     
     public DbSet<User> Users { get; set; }
+    
+    public DbSet<DownloadJob> DownloadJobs { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -44,6 +46,11 @@ public class StoryContext : DbContext
             var userBuilder = modelBuilder.Entity<User>();
             userBuilder.HasIndex(user => user.Login).IsUnique();
             userBuilder.HasIndex(user => new { user.CreationDate, user.IsActivated });
+        }
+        
+        {
+            var downloadJobBuilder = modelBuilder.Entity<DownloadJob>();
+            downloadJobBuilder.HasIndex(user => new { user.Status, user.AddedDate });
         }
     }
     

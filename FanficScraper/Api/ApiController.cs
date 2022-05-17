@@ -59,6 +59,45 @@ public class ApiController : Controller
         }
     }
     
+    [HttpPost("StoryAsync")]
+    public async Task<IActionResult> AddStoryAsync(
+        [FromBody] AddStoryCommand command,
+        [FromServices] FanFicUpdater updater,
+        [FromServices] UserManager userManager)
+    {
+        if (await userManager.IsAuthorized(command.Passphrase) != AuthorizationResult.Success)
+        {
+            return this.Unauthorized();
+        }
+        
+        var id = await updater.ScheduleUpdateStory(command.Url, command.Force ?? false);
+        return this.Ok(new AddStoryAsyncCommandResponse()
+        {
+            JobId = id
+        });
+    }
+    
+    [HttpGet("StoryAsync/{id}")]
+    public async Task<IActionResult> GetStoryAsync(
+        [FromRoute] Guid id,
+        [FromServices] FanFicUpdater updater)
+    {
+        var jobDetails = await updater.GetScheduledJobDetails(id);
+        if (jobDetails != null)
+        {
+            return this.Ok(
+                new GetStoryAsyncQueryResponse(
+                    jobId: id,
+                    storyId: jobDetails.StoryId,
+                    status: jobDetails.Status,
+                    url: jobDetails.Url));
+        }
+        else
+        {
+            return this.NotFound();
+        }
+    }
+    
     [HttpGet("StorySearch")]
     public async Task<IActionResult> FindStories(
         [FromQuery] string? name,

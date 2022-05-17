@@ -1,0 +1,45 @@
+﻿@page "{id}"
+@using FanficScraper.Data
+@model DownloadJobModel
+@{
+    ViewData["Title"] = "Download job";
+}
+
+@if (Model.Job != null)
+{
+    <div>
+        @switch (Model.Job.Status)
+        {
+            case DownloadJobStatus.NotYetStarted:
+                <h1>Downloading</h1>
+                break;
+            case DownloadJobStatus.Failed:
+                <h1>Failed</h1>
+                break;
+            case DownloadJobStatus.Succeeded:
+                <h1>SUCCESS!</h1>
+                break;
+            case DownloadJobStatus.Started:
+                <h1>Downloading</h1>
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
+        
+        <i>Refresh the page manually to get the current status</i><br/>
+        
+        <a href="@Model.Job.Url">Requested story</a>
+        
+        @if (Model.Job.StoryId != null)
+        {
+            <br/><br/>
+            <b><a href="/StoryDetails/@Model.Job.StoryId">Done! Go here</a></b>
+        }
+    </div>
+}
+else
+{
+    <div>
+        <h1>Not Found</h1>
+    </div>
+}

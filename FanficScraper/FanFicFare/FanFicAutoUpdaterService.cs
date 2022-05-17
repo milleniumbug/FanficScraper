@@ -2,14 +2,14 @@ using System.Globalization;
 
 namespace FanficScraper.FanFicFare;
 
-public class FanFicUpdaterService : IHostedService, IDisposable
+public class FanFicAutoUpdaterService : IHostedService, IDisposable
 {
-    private readonly ILogger<FanFicUpdaterService> logger;
+    private readonly ILogger<FanFicAutoUpdaterService> logger;
     private readonly IServiceScopeFactory scopeFactory;
     private Timer? timer;
 
-    public FanFicUpdaterService(
-        ILogger<FanFicUpdaterService> logger,
+    public FanFicAutoUpdaterService(
+        ILogger<FanFicAutoUpdaterService> logger,
         IServiceScopeFactory scopeFactory)
     {
         this.logger = logger;
@@ -18,7 +18,7 @@ public class FanFicUpdaterService : IHostedService, IDisposable
 
     public Task StartAsync(CancellationToken stoppingToken)
     {
-        logger.LogInformation("Timed Hosted Service running");
+        logger.LogInformation("Automatic Update Service running");
 
         timer = new Timer(DoWork, null, TimeSpan.Zero, Timeout.InfiniteTimeSpan);
 
@@ -36,7 +36,7 @@ public class FanFicUpdaterService : IHostedService, IDisposable
             var (story, nextUpdateIn) = await fanFicUpdater.UpdateOldest(TimeSpan.FromDays(1));
             if (story != null)
             {
-                logger.LogInformation("Updated {0} by {1}", story.Title, story.Author);
+                logger.LogInformation("Autoupdated {0} by {1}", story.Title, story.Author);
             }
             else
             {
@@ -51,7 +51,7 @@ public class FanFicUpdaterService : IHostedService, IDisposable
             }
             
             timer?.Change(nextUpdate, Timeout.InfiniteTimeSpan);
-            logger.LogInformation("Next update on '{0}'", (currentDate + nextUpdate).ToString(CultureInfo.InvariantCulture));
+            logger.LogInformation("Next auto-update on '{0}'", (currentDate + nextUpdate).ToString(CultureInfo.InvariantCulture));
         }
         catch (Exception e)
         {
@@ -62,7 +62,7 @@ public class FanFicUpdaterService : IHostedService, IDisposable
 
     public Task StopAsync(CancellationToken stoppingToken)
     {
-        logger.LogInformation("Timed Hosted Service is stopping");
+        logger.LogInformation("Automatic Update Service is stopping");
 
         timer?.Change(Timeout.Infinite, 0);
 

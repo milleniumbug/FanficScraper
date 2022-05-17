@@ -48,7 +48,9 @@ builder.Services.AddScoped<IFanFicFare>(provider =>
 
 builder.Services.AddSqlite<StoryContext>(dataConfiguration.ConnectionString);
 
-builder.Services.AddHostedService<FanFicUpdaterService>();
+builder.Services.AddHostedService<FanFicAutoUpdaterService>();
+
+builder.Services.AddHostedService<FanFicManualUpdaterService>();
 
 
 var app = builder.Build();

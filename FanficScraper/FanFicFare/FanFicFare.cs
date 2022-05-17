@@ -81,12 +81,12 @@ public class FanFicFare : IFanFicFare
                 siteAbbreviation: meta.SiteAbbreviation,
                 storyUrl: meta.StoryUrl,
                 isCompleted: meta.Status == "Completed",
-                category: string.IsNullOrEmpty(meta.Category) ? null : meta.Category.Split(',', StringSplitOptions.TrimEntries),
-                characters: string.IsNullOrEmpty(meta.Characters) ? null : meta.Characters.Split(',', StringSplitOptions.TrimEntries),
-                genre: string.IsNullOrEmpty(meta.Genre) ? null : meta.Genre.Split(',', StringSplitOptions.TrimEntries),
-                relationships: string.IsNullOrEmpty(meta.Relationships) ? null : meta.Relationships.Split(',', StringSplitOptions.TrimEntries),
-                rating: string.IsNullOrEmpty(meta.Rating) ? null : meta.Rating,
-                warnings: string.IsNullOrEmpty(meta.Warnings) ? null : meta.Warnings.Split(',', StringSplitOptions.TrimEntries),
+                category: string.IsNullOrEmpty(meta.Category) ? null : HttpUtility.HtmlDecode(meta.Category).Split(',', StringSplitOptions.TrimEntries),
+                characters: string.IsNullOrEmpty(meta.Characters) ? null : HttpUtility.HtmlDecode(meta.Characters).Split(',', StringSplitOptions.TrimEntries),
+                genre: string.IsNullOrEmpty(meta.Genre) ? null : HttpUtility.HtmlDecode(meta.Genre).Split(',', StringSplitOptions.TrimEntries),
+                relationships: string.IsNullOrEmpty(meta.Relationships) ? null : HttpUtility.HtmlDecode(meta.Relationships).Split(',', StringSplitOptions.TrimEntries),
+                rating: string.IsNullOrEmpty(meta.Rating) ? null : HttpUtility.HtmlDecode(meta.Rating),
+                warnings: string.IsNullOrEmpty(meta.Warnings) ? null : HttpUtility.HtmlDecode(meta.Warnings).Split(',', StringSplitOptions.TrimEntries),
                 descriptionParagraphs: MakeDescriptionParagraphs(meta.DescriptionHTML));
         });
     }
