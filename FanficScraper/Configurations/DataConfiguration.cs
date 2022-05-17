@@ -9,5 +9,7 @@ namespace FanficScraper.Configurations
         public string SecondaryFanFicScraperUrl { get; set; }
         
         public string SecondaryFanFicScraperPassphrase { get; set; }
+        
+        public bool DisableAutoUpdate { get; set; }
     }
 }

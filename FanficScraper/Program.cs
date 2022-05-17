@@ -33,7 +33,7 @@ builder.Services.AddScoped<IFanFicFare>(provider =>
         clients.Add(new FanFicScraper(new HttpClient()
         {
             BaseAddress = new Uri(dataConfiguration.SecondaryFanFicScraperUrl),
-            Timeout = TimeSpan.FromMinutes(4) + TimeSpan.FromSeconds(30)
+            Timeout = TimeSpan.FromMinutes(30)
         }, Options.Create(dataConfiguration)));
     }
     clients.Add(new FanFicFare(new FanFicFareSettings()
@@ -48,7 +48,10 @@ builder.Services.AddScoped<IFanFicFare>(provider =>
 
 builder.Services.AddSqlite<StoryContext>(dataConfiguration.ConnectionString);
 
-builder.Services.AddHostedService<FanFicAutoUpdaterService>();
+if (!dataConfiguration.DisableAutoUpdate)
+{
+    builder.Services.AddHostedService<FanFicAutoUpdaterService>();
+}
 
 builder.Services.AddHostedService<FanFicManualUpdaterService>();
 
