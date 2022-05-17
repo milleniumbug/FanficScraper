@@ -21,7 +21,7 @@ public class FanFicManualUpdaterService : IHostedService, IDisposable
     {
         logger.LogInformation("Manual schedule service running");
 
-        timer = new Timer(DoWork, null, TimeSpan.Zero, TimeSpan.FromSeconds(15));
+        timer = new Timer(DoWork, null, TimeSpan.Zero, Timeout.InfiniteTimeSpan);
 
         return Task.CompletedTask;
     }
@@ -37,6 +37,8 @@ public class FanFicManualUpdaterService : IHostedService, IDisposable
             {
                 logger.LogInformation("Updated manually scheduled story: {0} by {1}", story.Title, story.Author);
             }
+            
+            timer?.Change(TimeSpan.FromSeconds(15), Timeout.InfiniteTimeSpan);
         }
         catch (Exception e)
         {
