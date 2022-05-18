@@ -34,7 +34,7 @@ builder.Services.AddScoped<IFanFicFare>(provider =>
         {
             BaseAddress = new Uri(dataConfiguration.SecondaryFanFicScraperUrl),
             Timeout = TimeSpan.FromMinutes(30)
-        }, Options.Create(dataConfiguration)));
+        }, Options.Create(dataConfiguration), provider.GetRequiredService<ILogger<FanFicScraper>>()));
     }
     clients.Add(new FanFicFare(new FanFicFareSettings()
     {

@@ -61,7 +61,7 @@ public class ApiController : Controller
     
     [HttpPost("StoryAsync")]
     public async Task<IActionResult> AddStoryAsync(
-        [FromBody] AddStoryCommand command,
+        [FromBody] AddStoryAsyncCommand command,
         [FromServices] FanFicUpdater updater,
         [FromServices] UserManager userManager)
     {

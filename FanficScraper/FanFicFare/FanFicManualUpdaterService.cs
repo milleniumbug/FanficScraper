@@ -37,13 +37,12 @@ public class FanFicManualUpdaterService : IHostedService, IDisposable
             {
                 logger.LogInformation("Updated manually scheduled story: {0} by {1}", story.Title, story.Author);
             }
-            
-            timer?.Change(TimeSpan.FromSeconds(15), Timeout.InfiniteTimeSpan);
         }
         catch (Exception e)
         {
             logger.LogError(e, "Failure while updating a chapter");
         }
+        timer?.Change(TimeSpan.FromSeconds(15), Timeout.InfiniteTimeSpan);
     }
 
     public Task StopAsync(CancellationToken stoppingToken)
