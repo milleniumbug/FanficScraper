@@ -44,7 +44,13 @@
             default:
                 throw new ArgumentOutOfRangeException();
         }
-
+        
+        @if (Model.Job.Status == DownloadJobStatus.Failed)
+        {
+            <i>The site will attempt to download again in 10 minutes</i>
+            <br/>
+        }
+        
         <a href="@Model.Job.Url">Requested story</a>
         
         @if (Model.Job.StoryId != null)
@@ -55,10 +61,13 @@
         else
         {
             <script>
+                const current =
+                    @((int)Model.Job.Status)
+                ;
                 setInterval(async () => {
                     const response = await fetch("/Api/StoryAsync/@Model.JobId");
                     const result = await response.json();
-                    if (result.status === 1 || result.status === 2) {
+                    if (result.status !== current) {
                         window.location.reload();
                     }
                 }, 5000);
