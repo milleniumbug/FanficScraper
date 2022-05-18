@@ -19,8 +19,11 @@ public class DownloadJobModel : PageModel
     public async Task OnGetAsync(
         [FromRoute] Guid id)
     {
+        this.JobId = id;
         this.Job = await this.updater.GetScheduledJobDetails(id);
     }
 
     public JobDetails? Job { get; set; }
+    
+    public Guid JobId { get; set; }
 }

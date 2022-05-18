@@ -2,7 +2,26 @@
 @using FanficScraper.Data
 @model DownloadJobModel
 @{
-    ViewData["Title"] = "Download job";
+    @switch (Model.Job?.Status)
+    {
+        case DownloadJobStatus.NotYetStarted:
+            ViewData["Title"] = "Downloading";
+            break;
+        case DownloadJobStatus.Failed:
+            ViewData["Title"] = "Fail";
+            break;
+        case DownloadJobStatus.Succeeded:
+            ViewData["Title"] = "Success";
+            break;
+        case DownloadJobStatus.Started:
+            ViewData["Title"] = "Downloading";
+            break;
+        case null:
+            ViewData["Title"] = "Not found";
+            break;
+        default:
+            throw new ArgumentOutOfRangeException();
+    }
 }
 
 @if (Model.Job != null)
@@ -25,15 +44,25 @@
             default:
                 throw new ArgumentOutOfRangeException();
         }
-        
-        <i>Refresh the page manually to get the current status</i><br/>
-        
+
         <a href="@Model.Job.Url">Requested story</a>
         
         @if (Model.Job.StoryId != null)
         {
             <br/><br/>
             <b><a href="/StoryDetails/@Model.Job.StoryId">Done! Go here</a></b>
+        }
+        else
+        {
+            <script>
+                setInterval(async () => {
+                    const response = await fetch("/Api/StoryAsync/@Model.JobId");
+                    const result = await response.json();
+                    if (result.status === 1 || result.status === 2) {
+                        window.location.reload();
+                    }
+                }, 5000);
+            </script>
         }
     </div>
 }
