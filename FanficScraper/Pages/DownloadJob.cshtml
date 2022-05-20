@@ -5,7 +5,7 @@
     @switch (Model.Job?.Status)
     {
         case DownloadJobStatus.NotYetStarted:
-            ViewData["Title"] = "Downloading";
+            ViewData["Title"] = "Queued";
             break;
         case DownloadJobStatus.Failed:
             ViewData["Title"] = "Fail";
@@ -30,7 +30,7 @@
         @switch (Model.Job.Status)
         {
             case DownloadJobStatus.NotYetStarted:
-                <h1>Downloading</h1>
+                <h1>Queued</h1>
                 break;
             case DownloadJobStatus.Failed:
                 <h1>Failed</h1>

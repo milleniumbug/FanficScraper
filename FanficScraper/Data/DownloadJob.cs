@@ -15,4 +15,6 @@ public class DownloadJob
     public DateTime AddedDate { get; set; }
     
     public DateTime? FinishDate { get; set; }
+    
+    public Guid? RunnerId { get; set; }
 }

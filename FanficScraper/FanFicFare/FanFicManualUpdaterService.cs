@@ -8,6 +8,7 @@ public class FanFicManualUpdaterService : IHostedService, IDisposable
     private readonly ILogger<FanFicManualUpdaterService> logger;
     private readonly IServiceScopeFactory scopeFactory;
     private Timer? timer;
+    private Guid runnerId = Guid.NewGuid();
 
     public FanFicManualUpdaterService(
         ILogger<FanFicManualUpdaterService> logger,
@@ -32,7 +33,7 @@ public class FanFicManualUpdaterService : IHostedService, IDisposable
         var fanFicUpdater = scope.ServiceProvider.GetRequiredService<FanFicUpdater>();
         try
         {
-            var story = await fanFicUpdater.UpdateNextScheduled();
+            var story = await fanFicUpdater.UpdateNextScheduled(runnerId);
             if (story != null)
             {
                 logger.LogInformation("Updated manually scheduled story: {0} by {1}", story.Title, story.Author);

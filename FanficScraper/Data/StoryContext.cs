@@ -51,6 +51,7 @@ public class StoryContext : DbContext
         {
             var downloadJobBuilder = modelBuilder.Entity<DownloadJob>();
             downloadJobBuilder.HasIndex(user => new { user.Status, user.AddedDate });
+            downloadJobBuilder.HasIndex(user => user.AddedDate);
         }
     }
     

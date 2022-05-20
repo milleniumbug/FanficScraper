@@ -98,14 +98,15 @@ public class FanFicUpdater
             .FirstOrDefaultAsync();
     }
     
-    public async Task<FanFicStoryDetails?> UpdateNextScheduled()
+    public async Task<FanFicStoryDetails?> UpdateNextScheduled(Guid runnerId)
     {
         var minimalTime = DateTime.UtcNow - TimeSpan.FromMinutes(10);
         
         var downloadJob = await this.storyContext.DownloadJobs
             .OrderBy(downloadJob => downloadJob.Status)
             .ThenBy(downloadJob => downloadJob.AddedDate)
-            .Where(downloadJob => downloadJob.Status == DownloadJobStatus.NotYetStarted || downloadJob.Status == DownloadJobStatus.Failed)
+            .Where(downloadJob => downloadJob.Status != DownloadJobStatus.Succeeded)
+            .Where(downloadJob => downloadJob.Status != DownloadJobStatus.Started || downloadJob.RunnerId != runnerId)
             .Where(downloadJob => downloadJob.Status != DownloadJobStatus.Failed || downloadJob.AddedDate < minimalTime)
             .FirstOrDefaultAsync();
 
@@ -117,6 +118,7 @@ public class FanFicUpdater
         try
         {
             downloadJob.Status = DownloadJobStatus.Started;
+            downloadJob.RunnerId = runnerId;
             await this.storyContext.SaveChangesAsync();
             
             var fanFicStoryDetails = await RunFanFicFare(downloadJob.Url, force: downloadJob.Force);
@@ -149,8 +151,26 @@ public class FanFicUpdater
         }
         finally
         {
-            await storyContext.SaveChangesAsync();            
+            await storyContext.SaveChangesAsync();
+            await CleanupOldJobs();
         }
+    }
+
+    private async Task CleanupOldJobs()
+    {
+        var removalDate = DateTime.UtcNow - TimeSpan.FromDays(7);
+
+        var jobsToRemove = await this.storyContext.DownloadJobs
+            .Where(downloadJob =>
+                downloadJob.Status == DownloadJobStatus.Succeeded && downloadJob.AddedDate < removalDate)
+            .ToListAsync();
+
+        foreach (var job in jobsToRemove)
+        {
+            this.storyContext.DownloadJobs.Remove(job);
+        }
+
+        await this.storyContext.SaveChangesAsync();
     }
 
     public async Task<Guid> ScheduleUpdateStory(string url, bool force)
@@ -163,7 +183,8 @@ public class FanFicUpdater
             Force = force,
             AddedDate = DateTime.UtcNow,
             FileName = null,
-            FinishDate = null
+            FinishDate = null,
+            RunnerId = null
         };
 
         this.storyContext.Add(downloadJob);
