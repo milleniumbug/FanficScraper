@@ -85,4 +85,15 @@ public class StoryBrowser
             .OrderByDescending(story => story.StoryAdded)
             .ToListAsync();
     }
+
+    public async Task<IEnumerable<Story>> FindByAuthor(string authorName)
+    {
+        return await this.storyContext.Stories
+            .Include(story => story.StoryData)
+            .AsNoTracking()
+            .Where(story => story.AuthorName == authorName)
+            .OrderByDescending(story => story.StoryAdded)
+            .ThenByDescending(story => story.LastUpdated)
+            .ToListAsync();
+    }
 }

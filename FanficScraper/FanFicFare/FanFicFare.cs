@@ -46,6 +46,9 @@ public class FanFicFare : IFanFicFare
                 psi.ArgumentList.Add("include_images=true");
             }
 
+            psi.ArgumentList.Add("-o");
+            psi.ArgumentList.Add("never_make_cover=true");
+            
             if (metadataOnly)
             {
                 psi.ArgumentList.Add("--no-output");

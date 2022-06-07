@@ -1,0 +1,4 @@
+﻿@using System.Web
+@model FanficScraper.Data.Story
+
+<a href="/StoryDetails/@Model.FileName">@Model.StoryName</a> by <a href="/StoriesByAuthor/@Model.AuthorName">@Model.AuthorName</a>. @(Model.IsComplete ? "Complete" : "Incomplete") Updated: @Model.StoryUpdated.ToString("yyyy-MM-dd"). <a href="/Story/@Model.FileName">Download</a>

@@ -1,11 +1,11 @@
-﻿@page
-@model RecentlyAddedModel
+﻿@page "{authorName}"
+@model StoriesByAuthorModel
 @{
-    ViewData["Title"] = "Recently added";
+    ViewData["Title"] = $"Stories by {Model.Name}";
 }
 
 <div>
-    <h3>Recently added</h3>
+    <h3>Stories by @Model.Name</h3>
     <ul>
         @{
             @foreach (var story in Model.Stories)

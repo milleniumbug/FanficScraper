@@ -20,7 +20,9 @@
         @{
             @foreach (var story in Model.Stories)
             {
-                <li><a href="/StoryDetails/@story.FileName">@story.StoryName</a> by @story.AuthorName. @(story.IsComplete ? "Complete" : "Incomplete") Updated: @story.StoryUpdated.ToString("yyyy-MM-dd"). <a href="/Story/@story.FileName">Download</a></li>
+                <li>
+                    @await Html.PartialAsync("_StoryEntry", story)
+                </li>
             }
         }
     </ul>
