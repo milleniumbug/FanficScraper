@@ -100,14 +100,12 @@ public class FanFicUpdater
     
     public async Task<FanFicStoryDetails?> UpdateNextScheduled(Guid runnerId)
     {
-        var minimalTime = DateTime.UtcNow - TimeSpan.FromMinutes(10);
-        
         var downloadJob = await this.storyContext.DownloadJobs
             .OrderBy(downloadJob => downloadJob.Status)
             .ThenBy(downloadJob => downloadJob.AddedDate)
             .Where(downloadJob => downloadJob.Status != DownloadJobStatus.Succeeded)
             .Where(downloadJob => downloadJob.Status != DownloadJobStatus.Started || downloadJob.RunnerId != runnerId)
-            .Where(downloadJob => downloadJob.Status != DownloadJobStatus.Failed || downloadJob.AddedDate < minimalTime)
+            .Where(downloadJob => downloadJob.Status != DownloadJobStatus.Failed)
             .FirstOrDefaultAsync();
 
         if (downloadJob == null)
