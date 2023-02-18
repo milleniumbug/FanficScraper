@@ -115,13 +115,17 @@ public class FanFicFare : IFanFicFare
     private DateTime ParseDate(string s)
     {
         DateTime date;
-        if (DateTime.TryParseExact(s, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out date))
+        var formatsToTry = new[]
         {
-            return date;
-        }
-        if (DateTime.TryParseExact(s, "yyyy-MM-dd hh:mm:dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out date))
+            "yyyy-MM-dd",
+            "yyyy-MM-dd hh:mm:ss"
+        };
+        foreach (var format in formatsToTry)
         {
-            return date;
+            if (DateTime.TryParseExact(s, format, CultureInfo.InvariantCulture, DateTimeStyles.None, out date))
+            {
+                return date;
+            }
         }
 
         throw new FormatException($"String '{s} is not a valid datetime");
