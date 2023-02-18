@@ -33,7 +33,8 @@ public class FanFicScraper : IFanFicFare
         using var addResponse = await this.client.PostAsJsonAsync("Api/StoryAsync", new AddStoryAsyncCommand()
         {
             Url = storyUrl,
-            Passphrase = this.dataConfiguration.SecondaryFanFicScraperPassphrase,
+            Passphrase = this.dataConfiguration.SecondaryFanFicScraperPassphrase
+                         ?? throw new InvalidOperationException("missing secondary instance passphrase"),
             Force = force
         });
         addResponse.EnsureSuccessStatusCode();

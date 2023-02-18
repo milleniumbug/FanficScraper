@@ -1,4 +1,6 @@
 using System.Globalization;
+using FanficScraper.Configurations;
+using Microsoft.Extensions.Options;
 
 namespace FanficScraper.FanFicFare;
 
@@ -29,9 +31,15 @@ public class FanFicAutoUpdaterService : IHostedService, IDisposable
     {
         try
         {
-            var minimalTime = TimeSpan.FromSeconds(30);
             using var scope = this.scopeFactory.CreateScope();
             var fanFicUpdater = scope.ServiceProvider.GetRequiredService<FanFicUpdater>();
+            var configuration = scope.ServiceProvider.GetRequiredService<IOptions<DataConfiguration>>().Value;
+
+            var minimalTimeInSeconds = Random.Shared.Next(
+                minValue: configuration.MinimumUpdateDistanceInSecondsLowerBound,
+                maxValue: configuration.MinimumUpdateDistanceInSecondsUpperBound);
+            var minimalTime = TimeSpan.FromSeconds(minimalTimeInSeconds);
+            
             logger.LogInformation("Updating a story");
             var (story, nextUpdateIn) = await fanFicUpdater.UpdateOldest(TimeSpan.FromDays(1));
             if (story != null)
