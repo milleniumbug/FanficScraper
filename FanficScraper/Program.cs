@@ -37,17 +37,6 @@ builder.Services.AddScoped<IFanFicFare>(provider =>
         }, Options.Create(dataConfiguration), provider.GetRequiredService<ILogger<FanFicScraper>>()));
     }
 
-    if (dataConfiguration.FlareSolverr.EnableFlareSolverr)
-    {
-        clients.Add(new FanFicFare(new FanFicFareSettings()
-        {
-            IsAdult = true,
-            TargetDirectory = dataConfiguration.StoriesDirectory,
-            IncludeImages = true,
-            FlareSolverr = dataConfiguration.FlareSolverr
-        }, provider.GetRequiredService<ILogger<FanFicFare>>()));
-    }
-
     clients.Add(new FanFicFare(new FanFicFareSettings()
     {
         IsAdult = true,
