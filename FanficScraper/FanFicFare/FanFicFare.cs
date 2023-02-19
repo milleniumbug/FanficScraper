@@ -83,7 +83,7 @@ public class FanFicFare : IFanFicFare
                 siteUrl: meta.Site,
                 siteAbbreviation: meta.SiteAbbreviation,
                 storyUrl: meta.StoryUrl,
-                isCompleted: meta.Status == "Completed",
+                isCompleted: string.IsNullOrEmpty(meta.Status) || meta.Status == "Completed",
                 category: string.IsNullOrEmpty(meta.Category) ? null : HttpUtility.HtmlDecode(meta.Category).Split(',', StringSplitOptions.TrimEntries),
                 characters: string.IsNullOrEmpty(meta.Characters) ? null : HttpUtility.HtmlDecode(meta.Characters).Split(',', StringSplitOptions.TrimEntries),
                 genre: string.IsNullOrEmpty(meta.Genre) ? null : HttpUtility.HtmlDecode(meta.Genre).Split(',', StringSplitOptions.TrimEntries),
