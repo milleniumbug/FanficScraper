@@ -15,7 +15,5 @@ namespace FanficScraper.Configurations
         public int MinimumUpdateDistanceInSecondsUpperBound { get; set; } = 60;
         
         public bool DisableAutoUpdate { get; set; }
-
-        public FlareSolverrConfiguration FlareSolverr { get; set; } = new FlareSolverrConfiguration();
     }
 }
