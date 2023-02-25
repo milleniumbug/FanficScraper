@@ -1,4 +1,5 @@
 using FanficScraper.Configurations;
+using FanficScraper.FanFicFare.Challenges;
 
 namespace FanficScraper.FanFicFare;
 
@@ -10,5 +11,5 @@ public class FanFicFareSettings
 
     public string? TargetDirectory { get; set; }
 
-    public FlareSolverrConfiguration FlareSolverr { get; set; } = new FlareSolverrConfiguration();
+    public IChallengeSolver? ChallengeSolver { get; set; }
 }

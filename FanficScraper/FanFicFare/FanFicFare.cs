@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Text.Json;
 using System.Web;
+using FanficScraper.FanFicFare.Challenges;
 using HtmlAgilityPack;
 using Microsoft.AspNetCore.Components.Web;
 
@@ -21,8 +22,10 @@ public class FanFicFare : IFanFicFare
     
     public Task<FanFicStoryDetails> Run(string storyUrl, bool metadataOnly = false, bool force = false)
     {
-        return Task.Run(() =>
+        return Task.Run(async () =>
         {
+            string? cookiesFilePath = null;
+            FileStream? cookiesFs = null;
             var psi = new ProcessStartInfo()
             {
                 FileName = "fanficfare",
@@ -54,22 +57,27 @@ public class FanFicFare : IFanFicFare
                 psi.ArgumentList.Add("--no-output");
             }
 
-            if (settings.FlareSolverr.EnableFlareSolverr)
+            if (settings.ChallengeSolver != null)
             {
-                psi.ArgumentList.Add("-o");
-                psi.ArgumentList.Add("use_flaresolverr_proxy=true");
-                
-                psi.ArgumentList.Add("-o");
-                psi.ArgumentList.Add($"flaresolverr_proxy_address={settings.FlareSolverr.Address}");
-                
-                psi.ArgumentList.Add("-o");
-                psi.ArgumentList.Add($"flaresolverr_proxy_port={settings.FlareSolverr.Port}");
-                
-                psi.ArgumentList.Add("-o");
-                psi.ArgumentList.Add($"flaresolverr_proxy_protocol={settings.FlareSolverr.Protocol}");
-                
-                psi.ArgumentList.Add("-o");
-                psi.ArgumentList.Add($"flaresolverr_proxy_timeout={settings.FlareSolverr.TimeoutInMilliseconds}");
+                var solved = await settings.ChallengeSolver.Solve(new Uri(storyUrl));
+
+                if (solved.UserAgent != null)
+                {
+                    psi.ArgumentList.Add("-o");
+                    psi.ArgumentList.Add($"user_agent={solved.UserAgent}");
+                }
+
+                if (solved.Cookies != null)
+                {
+                    cookiesFilePath = Path.GetTempFileName();
+                    cookiesFs = new FileStream(
+                        cookiesFilePath,
+                        FileMode.Create,
+                        FileAccess.Write,
+                        FileShare.Read);
+                    WriteCookiesInMozillaFormat(cookiesFs, solved);
+                    psi.ArgumentList.Add($"--mozilla-cookies={cookiesFilePath}");
+                }
             }
 
             /*if (!force)
@@ -81,35 +89,75 @@ public class FanFicFare : IFanFicFare
             psi.ArgumentList.Add("--no-meta-chapters");
             psi.ArgumentList.Add("--");
             psi.ArgumentList.Add(storyUrl);
-            using var process = new Process()
+            try
             {
-                StartInfo = psi
-            };
-            process.Start();
+                using var process = new Process()
+                {
+                    StartInfo = psi
+                };
+                process.Start();
 
-            var meta = JsonSerializer.Deserialize<FanFicFareStoryJson>(process.StandardOutput.ReadToEnd())
-                       ?? throw new JsonException();
+                var meta = JsonSerializer.Deserialize<FanFicFareStoryJson>(
+                               await process.StandardOutput.ReadToEndAsync())
+                           ?? throw new JsonException();
 
-            return new FanFicStoryDetails(
-                author: HttpUtility.HtmlDecode(meta.Author),
-                title: HttpUtility.HtmlDecode(meta.Title),
-                publicationDate: ParseDate(meta.DatePublished),
-                websiteUpdateDate: ParseDate(meta.DateUpdated),
-                outputFilename: meta.OutputFilename,
-                numChapters: int.TryParse(meta.NumChapters.Replace(",", ""), out var numChapters) ? numChapters : null,
-                numWords: int.TryParse(meta.NumWords.Replace(",", ""), out var numWords) ? numWords : null,
-                siteUrl: meta.Site,
-                siteAbbreviation: meta.SiteAbbreviation,
-                storyUrl: meta.StoryUrl,
-                isCompleted: string.IsNullOrEmpty(meta.Status) || meta.Status == "Completed",
-                category: string.IsNullOrEmpty(meta.Category) ? null : HttpUtility.HtmlDecode(meta.Category).Split(',', StringSplitOptions.TrimEntries),
-                characters: string.IsNullOrEmpty(meta.Characters) ? null : HttpUtility.HtmlDecode(meta.Characters).Split(',', StringSplitOptions.TrimEntries),
-                genre: string.IsNullOrEmpty(meta.Genre) ? null : HttpUtility.HtmlDecode(meta.Genre).Split(',', StringSplitOptions.TrimEntries),
-                relationships: string.IsNullOrEmpty(meta.Relationships) ? null : HttpUtility.HtmlDecode(meta.Relationships).Split(',', StringSplitOptions.TrimEntries),
-                rating: string.IsNullOrEmpty(meta.Rating) ? null : HttpUtility.HtmlDecode(meta.Rating),
-                warnings: string.IsNullOrEmpty(meta.Warnings) ? null : HttpUtility.HtmlDecode(meta.Warnings).Split(',', StringSplitOptions.TrimEntries),
-                descriptionParagraphs: MakeDescriptionParagraphs(meta.DescriptionHTML));
+                return new FanFicStoryDetails(
+                    author: HttpUtility.HtmlDecode(meta.Author),
+                    title: HttpUtility.HtmlDecode(meta.Title),
+                    publicationDate: ParseDate(meta.DatePublished),
+                    websiteUpdateDate: ParseDate(meta.DateUpdated),
+                    outputFilename: meta.OutputFilename,
+                    numChapters: int.TryParse(meta.NumChapters.Replace(",", ""), out var numChapters)
+                        ? numChapters
+                        : null,
+                    numWords: int.TryParse(meta.NumWords.Replace(",", ""), out var numWords) ? numWords : null,
+                    siteUrl: meta.Site,
+                    siteAbbreviation: meta.SiteAbbreviation,
+                    storyUrl: meta.StoryUrl,
+                    isCompleted: string.IsNullOrEmpty(meta.Status) || meta.Status == "Completed",
+                    category: string.IsNullOrEmpty(meta.Category)
+                        ? null
+                        : HttpUtility.HtmlDecode(meta.Category).Split(',', StringSplitOptions.TrimEntries),
+                    characters: string.IsNullOrEmpty(meta.Characters)
+                        ? null
+                        : HttpUtility.HtmlDecode(meta.Characters).Split(',', StringSplitOptions.TrimEntries),
+                    genre: string.IsNullOrEmpty(meta.Genre)
+                        ? null
+                        : HttpUtility.HtmlDecode(meta.Genre).Split(',', StringSplitOptions.TrimEntries),
+                    relationships: string.IsNullOrEmpty(meta.Relationships)
+                        ? null
+                        : HttpUtility.HtmlDecode(meta.Relationships).Split(',', StringSplitOptions.TrimEntries),
+                    rating: string.IsNullOrEmpty(meta.Rating) ? null : HttpUtility.HtmlDecode(meta.Rating),
+                    warnings: string.IsNullOrEmpty(meta.Warnings)
+                        ? null
+                        : HttpUtility.HtmlDecode(meta.Warnings).Split(',', StringSplitOptions.TrimEntries),
+                    descriptionParagraphs: MakeDescriptionParagraphs(meta.DescriptionHTML));
+            }
+            finally
+            {
+                cookiesFs?.Close();
+                if (cookiesFilePath != null)
+                {
+                    File.Delete(cookiesFilePath);
+                }
+            }
         });
+    }
+
+    public static void WriteCookiesInMozillaFormat(
+        Stream cookiesFs,
+        ChallengeResult result)
+    {
+        using var writer = new StreamWriter(cookiesFs, leaveOpen: true);
+        var cookies = result.Cookies;
+        if (cookies != null)
+        {
+            foreach (var cookie in cookies)
+            {
+                writer.WriteLine($"{cookie.Domain}\tTRUE\t{cookie.Path}\t{(cookie.Secure ? "TRUE" : "FALSE")}\t{new DateTimeOffset(cookie.Expires).ToUnixTimeSeconds()}\t{cookie.Name}\t{cookie.Value}");
+            }
+        }
+        writer.Flush();
     }
 
     private DateTime ParseDate(string s)

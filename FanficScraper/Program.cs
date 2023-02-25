@@ -3,6 +3,7 @@ using FanficScraper;
 using FanficScraper.Configurations;
 using FanficScraper.Data;
 using FanficScraper.FanFicFare;
+using FanficScraper.FanFicFare.Challenges;
 using FanficScraper.Services;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
@@ -37,22 +38,26 @@ builder.Services.AddScoped<IFanFicFare>(provider =>
         }, Options.Create(dataConfiguration), provider.GetRequiredService<ILogger<FanFicScraper>>()));
     }
 
+    IChallengeSolver? challengeSolver = null; 
+    
     if (dataConfiguration.FlareSolverr.EnableFlareSolverr)
     {
-        clients.Add(new FanFicFare(new FanFicFareSettings()
-        {
-            IsAdult = true,
-            TargetDirectory = dataConfiguration.StoriesDirectory,
-            IncludeImages = true,
-            FlareSolverr = dataConfiguration.FlareSolverr
-        }, provider.GetRequiredService<ILogger<FanFicFare>>()));
+        challengeSolver = new CachingChallengeSolver(
+            new FlareSolverr(
+                new HttpClient()
+                {
+                    BaseAddress = new Uri(dataConfiguration.FlareSolverr.Address)
+                },
+                dataConfiguration.FlareSolverr),
+            TimeSpan.FromMinutes(5));
     }
 
     clients.Add(new FanFicFare(new FanFicFareSettings()
     {
         IsAdult = true,
         TargetDirectory = dataConfiguration.StoriesDirectory,
-        IncludeImages = true
+        IncludeImages = true,
+        ChallengeSolver = challengeSolver
     }, provider.GetRequiredService<ILogger<FanFicFare>>()));
 
     return new CompositeFanFicFare(clients, provider.GetRequiredService<ILogger<CompositeFanFicFare>>());
