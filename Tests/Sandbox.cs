@@ -33,6 +33,8 @@ public class Sandbox
         ;
         var v2 = await cacheSolver.Solve(new Uri("https://www.scribblehub.com/series/443703/the-harem-protagonist-was-turned-into-a-girl-and-doesnt-want-to-change-back/"));
         ;
+        var v3 = await cacheSolver.Solve(new Uri("https://www.scribblehub.com/series/194683/acceptance-of-the-self/"));
+        ;
         using var memory = new MemoryStream();
         FanFicFare.WriteCookiesInMozillaFormat(memory, v2);
 

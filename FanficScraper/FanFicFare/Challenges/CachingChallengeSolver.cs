@@ -31,7 +31,7 @@ public class CachingChallengeSolver : IChallengeSolver
 
     private Task<ChallengeResult> UpdateChallenge(string origin, Uri uri, ChallengeResult oldResult)
     {
-        if (GetCurrentTime() > oldResult.ExpiryTime + tolerancePeriod)
+        if (GetCurrentTime() + tolerancePeriod < oldResult.ExpiryTime)
         {
             return SolveChallenge(origin, uri);
         }

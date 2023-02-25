@@ -46,7 +46,9 @@ builder.Services.AddScoped<IFanFicFare>(provider =>
             new FlareSolverr(
                 new HttpClient()
                 {
-                    BaseAddress = new Uri(dataConfiguration.FlareSolverr.Address)
+                    BaseAddress = new Uri(dataConfiguration.FlareSolverr.Address),
+                    Timeout = TimeSpan.FromMilliseconds(dataConfiguration.FlareSolverr.TimeoutInMilliseconds)
+                              + TimeSpan.FromMilliseconds(250)
                 },
                 dataConfiguration.FlareSolverr),
             TimeSpan.FromMinutes(5));

@@ -36,7 +36,7 @@ public class FlareSolverr : IChallengeSolver
         var expiryTimeInSeconds = flareSolverrGetResponse.Solution.Cookies
             .FirstOrDefault(cookie => cookie.Name == "cf_clearance")?.Expires;
         var expiryTime = expiryTimeInSeconds == null
-            ? DateTime.UtcNow.AddDays(2)
+            ? DateTime.UtcNow.AddDays(14)
             : DateTimeOffset.FromUnixTimeSeconds((long)expiryTimeInSeconds).UtcDateTime;
 
         return new ChallengeResult(
