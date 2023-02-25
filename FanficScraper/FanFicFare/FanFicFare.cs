@@ -25,7 +25,6 @@ public class FanFicFare : IFanFicFare
         return Task.Run(async () =>
         {
             string? cookiesFilePath = null;
-            FileStream? cookiesFs = null;
             var psi = new ProcessStartInfo()
             {
                 FileName = "fanficfare",
@@ -70,11 +69,7 @@ public class FanFicFare : IFanFicFare
                 if (solved.Cookies != null)
                 {
                     cookiesFilePath = Path.GetTempFileName();
-                    cookiesFs = new FileStream(
-                        cookiesFilePath,
-                        FileMode.Create,
-                        FileAccess.Write,
-                        FileShare.Read);
+                    await using var cookiesFs = File.Create(cookiesFilePath);
                     WriteCookiesInMozillaFormat(cookiesFs, solved);
                     psi.ArgumentList.Add($"--mozilla-cookies={cookiesFilePath}");
                 }
@@ -91,6 +86,8 @@ public class FanFicFare : IFanFicFare
             psi.ArgumentList.Add(storyUrl);
             try
             {
+                var cmdLog = $"{psi.FileName} {string.Join(" ", psi.ArgumentList)}";
+                logger.LogInformation("Launching fanficfare with: {CmdLog}", cmdLog);
                 using var process = new Process()
                 {
                     StartInfo = psi
@@ -135,7 +132,6 @@ public class FanFicFare : IFanFicFare
             }
             finally
             {
-                cookiesFs?.Close();
                 if (cookiesFilePath != null)
                 {
                     File.Delete(cookiesFilePath);
@@ -148,13 +144,19 @@ public class FanFicFare : IFanFicFare
         Stream cookiesFs,
         ChallengeResult result)
     {
-        using var writer = new StreamWriter(cookiesFs, leaveOpen: true);
+        using var writer = new StreamWriter(cookiesFs, leaveOpen: true)
+        {
+            NewLine = "\n"
+        };
         var cookies = result.Cookies;
         if (cookies != null)
         {
+            writer.WriteLine("# HTTP Cookie File");
             foreach (var cookie in cookies)
             {
-                writer.WriteLine($"{cookie.Domain}\tTRUE\t{cookie.Path}\t{(cookie.Secure ? "TRUE" : "FALSE")}\t{new DateTimeOffset(cookie.Expires).ToUnixTimeSeconds()}\t{cookie.Name}\t{cookie.Value}");
+                // seems to be irrelevant nowadays, we need to shut up the Python cookiejar assert here
+                bool includeSubdomains = cookie.Domain.StartsWith(".", StringComparison.Ordinal);
+                writer.WriteLine($"{cookie.Domain}\t{(includeSubdomains ? "TRUE" : "FALSE")}\t{cookie.Path}\t{(cookie.Secure ? "TRUE" : "FALSE")}\t{new DateTimeOffset(cookie.Expires).ToUnixTimeSeconds()}\t{cookie.Name}\t{cookie.Value}");
             }
         }
         writer.Flush();
