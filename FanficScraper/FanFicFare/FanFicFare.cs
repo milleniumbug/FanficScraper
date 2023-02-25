@@ -54,6 +54,24 @@ public class FanFicFare : IFanFicFare
                 psi.ArgumentList.Add("--no-output");
             }
 
+            if (settings.FlareSolverr.EnableFlareSolverr)
+            {
+                psi.ArgumentList.Add("-o");
+                psi.ArgumentList.Add("use_flaresolverr_proxy=true");
+                
+                psi.ArgumentList.Add("-o");
+                psi.ArgumentList.Add($"flaresolverr_proxy_address={settings.FlareSolverr.Address}");
+                
+                psi.ArgumentList.Add("-o");
+                psi.ArgumentList.Add($"flaresolverr_proxy_port={settings.FlareSolverr.Port}");
+                
+                psi.ArgumentList.Add("-o");
+                psi.ArgumentList.Add($"flaresolverr_proxy_protocol={settings.FlareSolverr.Protocol}");
+                
+                psi.ArgumentList.Add("-o");
+                psi.ArgumentList.Add($"flaresolverr_proxy_timeout={settings.FlareSolverr.TimeoutInMilliseconds}");
+            }
+
             /*if (!force)
             {
                 psi.ArgumentList.Add("--update-epub");
