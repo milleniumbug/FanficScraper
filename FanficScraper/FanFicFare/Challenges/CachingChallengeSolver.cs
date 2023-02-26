@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using FanficScraper.Utils;
 
 namespace FanficScraper.FanFicFare.Challenges;
 
@@ -21,7 +22,7 @@ public class CachingChallengeSolver : IChallengeSolver
     
     public async Task<ChallengeSolution> Solve(Uri uri)
     {
-        var origin = uri.GetLeftPart(UriPartial.Authority);
+        var origin = uri.GetOrigin();
         return await challengeResults.AddOrUpdate(origin,
             (o) =>
             {
@@ -29,6 +30,12 @@ public class CachingChallengeSolver : IChallengeSolver
                 return SolveChallenge(o, uri);
             },
             async (o, oldTask) => await UpdateChallenge(o, uri, await oldTask));
+    }
+
+    public void Invalidate(ChallengeSolution solved)
+    {
+        this.challengeResults.TryRemove(solved.Origin.GetOrigin(), out _);
+        this.solver.Invalidate(solved);
     }
 
     private async Task<ChallengeSolution> SolveChallenge(string origin, Uri uri)

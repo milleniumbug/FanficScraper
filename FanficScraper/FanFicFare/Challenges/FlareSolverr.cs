@@ -2,6 +2,7 @@ using System.Net;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using FanficScraper.Configurations;
+using FanficScraper.Utils;
 
 namespace FanficScraper.FanFicFare.Challenges;
 
@@ -40,24 +41,30 @@ public class FlareSolverr : IChallengeSolver
         return new ChallengeSolution(
             UserAgent: flareSolverrGetResponse.Solution.UserAgent,
             Cookies: MapCookies(flareSolverrGetResponse.Solution.Cookies),
-            Origin: new Uri(uri.GetLeftPart(UriPartial.Authority)),
+            Origin: new Uri(uri.GetOrigin()),
             ExpiryTime: expiryTime);
+    }
+
+    public void Invalidate(ChallengeSolution solved)
+    {
+        // do nothing
     }
 
     private IReadOnlyList<Cookie> MapCookies(IReadOnlyList<FlareSolverrCookie> solutionCookies)
     {
-        return solutionCookies
-            .Select(cookie => new Cookie()
-            {
-                Name = cookie.Name,
-                Value = cookie.Value,
-                Expires = DateTimeOffset.FromUnixTimeSeconds((long)cookie.Expires).UtcDateTime,
-                HttpOnly = cookie.HttpOnly,
-                Secure = cookie.Secure,
-                Domain = cookie.Domain,
-                Path = cookie.Path
-            })
-            .ToList();
+        return new ToStringableReadOnlyList<Cookie>(
+            solutionCookies
+                .Select(cookie => new Cookie()
+                {
+                    Name = cookie.Name,
+                    Value = cookie.Value,
+                    Expires = DateTimeOffset.FromUnixTimeSeconds((long)cookie.Expires).UtcDateTime,
+                    HttpOnly = cookie.HttpOnly,
+                    Secure = cookie.Secure,
+                    Domain = cookie.Domain,
+                    Path = cookie.Path
+                })
+                .ToList());
     }
 }
 

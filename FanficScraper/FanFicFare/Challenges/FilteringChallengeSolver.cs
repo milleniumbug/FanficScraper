@@ -1,3 +1,5 @@
+using FanficScraper.Utils;
+
 namespace FanficScraper.FanFicFare.Challenges;
 
 public class FilteringChallengeSolver : IChallengeSolver
@@ -30,7 +32,7 @@ public class FilteringChallengeSolver : IChallengeSolver
 
     public async Task<ChallengeSolution> Solve(Uri uri)
     {
-        var origin = uri.GetLeftPart(UriPartial.Authority);
+        var origin = uri.GetOrigin();
         bool isOnTheList = originUrls.Contains(origin);
         if (inclusionType == InclusionType.SolveNoChallengeExceptOnTheList && isOnTheList ||
             inclusionType == InclusionType.SolveAllChallengesExceptOnTheList && !isOnTheList)
@@ -41,5 +43,10 @@ public class FilteringChallengeSolver : IChallengeSolver
         {
             return ChallengeSolution.GetNeverExipiringNullSolution(new Uri(origin));
         }
+    }
+
+    public void Invalidate(ChallengeSolution solved)
+    {
+        this.solver.Invalidate(solved);
     }
 }

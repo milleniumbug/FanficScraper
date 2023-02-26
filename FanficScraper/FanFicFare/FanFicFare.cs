@@ -29,6 +29,7 @@ public class FanFicFare : IFanFicFare
             {
                 FileName = "fanficfare",
                 RedirectStandardOutput = true,
+                RedirectStandardError = true,
                 UseShellExecute = false,
             };
             if (settings.TargetDirectory != null)
@@ -56,9 +57,10 @@ public class FanFicFare : IFanFicFare
                 psi.ArgumentList.Add("--no-output");
             }
 
+            ChallengeSolution? solved = null;
             if (settings.ChallengeSolver != null)
             {
-                var solved = await settings.ChallengeSolver.Solve(new Uri(storyUrl));
+                solved = await settings.ChallengeSolver.Solve(new Uri(storyUrl));
 
                 if (solved.UserAgent != null)
                 {
@@ -94,41 +96,63 @@ public class FanFicFare : IFanFicFare
                 };
                 process.Start();
 
-                var meta = JsonSerializer.Deserialize<FanFicFareStoryJson>(
-                               await process.StandardOutput.ReadToEndAsync())
-                           ?? throw new JsonException();
+                var stdoutReadTask = process.StandardOutput.ReadToEndAsync();
+                var stderrReadTask = process.StandardError.ReadToEndAsync();
 
-                return new FanFicStoryDetails(
-                    author: HttpUtility.HtmlDecode(meta.Author),
-                    title: HttpUtility.HtmlDecode(meta.Title),
-                    publicationDate: ParseDate(meta.DatePublished),
-                    websiteUpdateDate: ParseDate(meta.DateUpdated),
-                    outputFilename: meta.OutputFilename,
-                    numChapters: int.TryParse(meta.NumChapters.Replace(",", ""), out var numChapters)
-                        ? numChapters
-                        : null,
-                    numWords: int.TryParse(meta.NumWords.Replace(",", ""), out var numWords) ? numWords : null,
-                    siteUrl: meta.Site,
-                    siteAbbreviation: meta.SiteAbbreviation,
-                    storyUrl: meta.StoryUrl,
-                    isCompleted: string.IsNullOrEmpty(meta.Status) || meta.Status == "Completed",
-                    category: string.IsNullOrEmpty(meta.Category)
-                        ? null
-                        : HttpUtility.HtmlDecode(meta.Category).Split(',', StringSplitOptions.TrimEntries),
-                    characters: string.IsNullOrEmpty(meta.Characters)
-                        ? null
-                        : HttpUtility.HtmlDecode(meta.Characters).Split(',', StringSplitOptions.TrimEntries),
-                    genre: string.IsNullOrEmpty(meta.Genre)
-                        ? null
-                        : HttpUtility.HtmlDecode(meta.Genre).Split(',', StringSplitOptions.TrimEntries),
-                    relationships: string.IsNullOrEmpty(meta.Relationships)
-                        ? null
-                        : HttpUtility.HtmlDecode(meta.Relationships).Split(',', StringSplitOptions.TrimEntries),
-                    rating: string.IsNullOrEmpty(meta.Rating) ? null : HttpUtility.HtmlDecode(meta.Rating),
-                    warnings: string.IsNullOrEmpty(meta.Warnings)
-                        ? null
-                        : HttpUtility.HtmlDecode(meta.Warnings).Split(',', StringSplitOptions.TrimEntries),
-                    descriptionParagraphs: MakeDescriptionParagraphs(meta.DescriptionHTML));
+                await process.WaitForExitAsync();
+                var exitCode = process.ExitCode;
+
+                if (exitCode == 0)
+                {
+                    var meta = JsonSerializer.Deserialize<FanFicFareStoryJson>(await stdoutReadTask)
+                               ?? throw new JsonException();
+                    
+                    this.logger.LogWarning("StdErr output: {StdErr}", await stderrReadTask);
+
+                    return new FanFicStoryDetails(
+                        author: HttpUtility.HtmlDecode(meta.Author),
+                        title: HttpUtility.HtmlDecode(meta.Title),
+                        publicationDate: ParseDate(meta.DatePublished),
+                        websiteUpdateDate: ParseDate(meta.DateUpdated),
+                        outputFilename: meta.OutputFilename,
+                        numChapters: int.TryParse(meta.NumChapters.Replace(",", ""), out var numChapters)
+                            ? numChapters
+                            : null,
+                        numWords: int.TryParse(meta.NumWords.Replace(",", ""), out var numWords) ? numWords : null,
+                        siteUrl: meta.Site,
+                        siteAbbreviation: meta.SiteAbbreviation,
+                        storyUrl: meta.StoryUrl,
+                        isCompleted: string.IsNullOrEmpty(meta.Status) || meta.Status == "Completed",
+                        category: string.IsNullOrEmpty(meta.Category)
+                            ? null
+                            : HttpUtility.HtmlDecode(meta.Category).Split(',', StringSplitOptions.TrimEntries),
+                        characters: string.IsNullOrEmpty(meta.Characters)
+                            ? null
+                            : HttpUtility.HtmlDecode(meta.Characters).Split(',', StringSplitOptions.TrimEntries),
+                        genre: string.IsNullOrEmpty(meta.Genre)
+                            ? null
+                            : HttpUtility.HtmlDecode(meta.Genre).Split(',', StringSplitOptions.TrimEntries),
+                        relationships: string.IsNullOrEmpty(meta.Relationships)
+                            ? null
+                            : HttpUtility.HtmlDecode(meta.Relationships).Split(',', StringSplitOptions.TrimEntries),
+                        rating: string.IsNullOrEmpty(meta.Rating) ? null : HttpUtility.HtmlDecode(meta.Rating),
+                        warnings: string.IsNullOrEmpty(meta.Warnings)
+                            ? null
+                            : HttpUtility.HtmlDecode(meta.Warnings).Split(',', StringSplitOptions.TrimEntries),
+                        descriptionParagraphs: MakeDescriptionParagraphs(meta.DescriptionHTML));
+                }
+                else
+                {
+                    await stdoutReadTask;
+                    var stderr = await stderrReadTask;
+                    if (stderr.Contains("403 Client Error: Forbidden for url", StringComparison.Ordinal) &&
+                        settings.ChallengeSolver != null &&
+                        solved != null)
+                    {
+                        settings.ChallengeSolver.Invalidate(solved);
+                    }
+                    throw new FanficFareException(stderr);
+                }
             }
             finally
             {
