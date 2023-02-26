@@ -168,7 +168,7 @@ public class FanFicFare : IFanFicFare
         var formatsToTry = new[]
         {
             "yyyy-MM-dd",
-            "yyyy-MM-dd hh:mm:ss"
+            "yyyy-MM-dd HH:mm:ss"
         };
         foreach (var format in formatsToTry)
         {
@@ -178,7 +178,7 @@ public class FanFicFare : IFanFicFare
             }
         }
 
-        throw new FormatException($"String '{s} is not a valid datetime");
+        throw new FormatException($"String '{s}' is not a valid datetime");
     }
     
     private IReadOnlyList<string>? MakeDescriptionParagraphs(string? descriptionHtml)
