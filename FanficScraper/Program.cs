@@ -26,6 +26,22 @@ builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddSingleton<PhraseGenerator>();
 builder.Services.TryAddSingleton(_ =>
     RandomNumberGenerator.Create());
+if (dataConfiguration.FlareSolverr.EnableFlareSolverr)
+{
+    builder.Services.AddSingleton<IChallengeSolver>(provider =>
+        new CachingChallengeSolver(
+            new FlareSolverr(
+                new HttpClient()
+                {
+                    BaseAddress = new Uri(dataConfiguration.FlareSolverr.Address),
+                    Timeout = TimeSpan.FromMilliseconds(dataConfiguration.FlareSolverr.TimeoutInMilliseconds)
+                              + TimeSpan.FromMilliseconds(250)
+                },
+                dataConfiguration.FlareSolverr),
+            TimeSpan.FromMinutes(5),
+            provider.GetRequiredService<ILogger<CachingChallengeSolver>>()));
+}
+
 builder.Services.AddScoped<IFanFicFare>(provider =>
 {
     var clients = new List<IFanFicFare>();
@@ -38,28 +54,12 @@ builder.Services.AddScoped<IFanFicFare>(provider =>
         }, Options.Create(dataConfiguration), provider.GetRequiredService<ILogger<FanFicScraper>>()));
     }
 
-    IChallengeSolver? challengeSolver = null; 
-    
-    if (dataConfiguration.FlareSolverr.EnableFlareSolverr)
-    {
-        challengeSolver = new CachingChallengeSolver(
-            new FlareSolverr(
-                new HttpClient()
-                {
-                    BaseAddress = new Uri(dataConfiguration.FlareSolverr.Address),
-                    Timeout = TimeSpan.FromMilliseconds(dataConfiguration.FlareSolverr.TimeoutInMilliseconds)
-                              + TimeSpan.FromMilliseconds(250)
-                },
-                dataConfiguration.FlareSolverr),
-            TimeSpan.FromMinutes(5));
-    }
-
     clients.Add(new FanFicFare(new FanFicFareSettings()
     {
         IsAdult = true,
         TargetDirectory = dataConfiguration.StoriesDirectory,
         IncludeImages = true,
-        ChallengeSolver = challengeSolver
+        ChallengeSolver = provider.GetService<IChallengeSolver>()
     }, provider.GetRequiredService<ILogger<FanFicFare>>()));
 
     return new CompositeFanFicFare(clients, provider.GetRequiredService<ILogger<CompositeFanFicFare>>());

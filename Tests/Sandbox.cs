@@ -2,6 +2,7 @@ using System.Text;
 using FanficScraper.Configurations;
 using FanficScraper.FanFicFare;
 using FanficScraper.FanFicFare.Challenges;
+using Microsoft.Extensions.Logging.Abstractions;
 using Xunit.Abstractions;
 
 namespace TestProject1;
@@ -27,7 +28,8 @@ public class Sandbox
                 {
                     TimeoutInMilliseconds = 120_000
                 }),
-            TimeSpan.FromMinutes(5));
+            TimeSpan.FromMinutes(5),
+            NullLogger<CachingChallengeSolver>.Instance);
 
         var v1 = await cacheSolver.Solve(new Uri("https://www.scribblehub.com"));
         ;
