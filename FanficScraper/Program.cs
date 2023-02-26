@@ -28,18 +28,28 @@ builder.Services.TryAddSingleton(_ =>
     RandomNumberGenerator.Create());
 if (dataConfiguration.FlareSolverr.EnableFlareSolverr)
 {
+    var policy = dataConfiguration.FlareSolverr.UrlsToSolve == null
+        ? FilteringChallengeSolver.InclusionType.SolveAllChallengesExceptOnTheList
+        : FilteringChallengeSolver.InclusionType.SolveNoChallengeExceptOnTheList;
+
+    var urlsToSolve = dataConfiguration.FlareSolverr.UrlsToSolve == null
+        ? Array.Empty<string>()
+        : dataConfiguration.FlareSolverr.UrlsToSolve.Split(";",
+            StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+    
     builder.Services.AddSingleton<IChallengeSolver>(provider =>
-        new CachingChallengeSolver(
-            new FlareSolverr(
-                new HttpClient()
-                {
-                    BaseAddress = new Uri(dataConfiguration.FlareSolverr.Address),
-                    Timeout = TimeSpan.FromMilliseconds(dataConfiguration.FlareSolverr.TimeoutInMilliseconds)
-                              + TimeSpan.FromMilliseconds(250)
-                },
-                dataConfiguration.FlareSolverr),
-            TimeSpan.FromMinutes(5),
-            provider.GetRequiredService<ILogger<CachingChallengeSolver>>()));
+        new FilteringChallengeSolver(
+            policy,
+            urlsToSolve,
+            new CachingChallengeSolver(
+                new FlareSolverr(
+                    new HttpClient()
+                    {
+                        BaseAddress = new Uri(dataConfiguration.FlareSolverr.Address),
+                        Timeout = TimeSpan.FromMilliseconds(dataConfiguration.FlareSolverr.TimeoutInMilliseconds)
+                    }),
+                TimeSpan.FromMinutes(5),
+                provider.GetRequiredService<ILogger<CachingChallengeSolver>>())));
 }
 
 builder.Services.AddScoped<IFanFicFare>(provider =>

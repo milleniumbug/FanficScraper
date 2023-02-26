@@ -19,17 +19,17 @@ public class Sandbox
     [Fact]
     public async Task Sample()
     {
-        var cacheSolver = new CachingChallengeSolver(
-            new FlareSolverr(new HttpClient()
-                {
-                    BaseAddress = new Uri("http://localhost:8191")
-                },
-                new FlareSolverrConfiguration()
-                {
-                    TimeoutInMilliseconds = 120_000
-                }),
-            TimeSpan.FromMinutes(5),
-            NullLogger<CachingChallengeSolver>.Instance);
+        var cacheSolver = new FilteringChallengeSolver(
+            FilteringChallengeSolver.InclusionType.SolveAllChallengesExceptOnTheList,
+            new []{ "https://www.tgstorytime.com" },
+            new CachingChallengeSolver(
+                new FlareSolverr(new HttpClient()
+                    {
+                        BaseAddress = new Uri("http://localhost:8191"),
+                        Timeout = TimeSpan.FromMinutes(2)
+                    }),
+                    TimeSpan.FromMinutes(5),
+                NullLogger<CachingChallengeSolver>.Instance));
 
         var v1 = await cacheSolver.Solve(new Uri("https://www.scribblehub.com"));
         ;
@@ -37,8 +37,16 @@ public class Sandbox
         ;
         var v3 = await cacheSolver.Solve(new Uri("https://www.scribblehub.com/series/194683/acceptance-of-the-self/"));
         ;
+        var v4 = await cacheSolver.Solve(new Uri("https://www.tgstorytime.com/viewstory.php?sid=4160"));
+        ;
+        PrintOutCookies(v2);
+        PrintOutCookies(v4);
+    }
+
+    private void PrintOutCookies(ChallengeSolution solution)
+    {
         using var memory = new MemoryStream();
-        FanFicFare.WriteCookiesInMozillaFormat(memory, v2);
+        FanFicFare.WriteCookiesInMozillaFormat(memory, solution);
 
         var s = Encoding.UTF8.GetString(memory.ToArray());
         testOutputHelper.WriteLine(s);

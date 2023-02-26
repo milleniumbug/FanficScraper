@@ -8,21 +8,19 @@ namespace FanficScraper.FanFicFare.Challenges;
 public class FlareSolverr : IChallengeSolver
 {
     private readonly HttpClient client;
-    private readonly FlareSolverrConfiguration configuration;
 
-    public FlareSolverr(HttpClient client, FlareSolverrConfiguration configuration)
+    public FlareSolverr(HttpClient client)
     {
         this.client = client;
-        this.configuration = configuration;
     }
     
-    public async Task<ChallengeResult> Solve(Uri uri)
+    public async Task<ChallengeSolution> Solve(Uri uri)
     {
         var response = await this.client.PostAsJsonAsync("/v1", new FlareSolverrGetRequest()
         {
             Url = uri.ToString(),
             ReturnOnlyCookies = true,
-            MaxTimeout = this.configuration.TimeoutInMilliseconds
+            MaxTimeout = (long)client.Timeout.TotalMilliseconds
         });
 
         var flareSolverrGetResponse = await JsonSerializer.DeserializeAsync<FlareSolverrGetResponse>(
@@ -39,7 +37,7 @@ public class FlareSolverr : IChallengeSolver
             ? DateTime.UtcNow.AddDays(14)
             : DateTimeOffset.FromUnixTimeSeconds((long)expiryTimeInSeconds).UtcDateTime;
 
-        return new ChallengeResult(
+        return new ChallengeSolution(
             UserAgent: flareSolverrGetResponse.Solution.UserAgent,
             Cookies: MapCookies(flareSolverrGetResponse.Solution.Cookies),
             Origin: new Uri(uri.GetLeftPart(UriPartial.Authority)),
@@ -83,7 +81,7 @@ public class FlareSolverrGetRequest
     public string? Session { get; set; }
     
     [JsonPropertyName("maxTimeout")]
-    public int? MaxTimeout { get; set; }
+    public long? MaxTimeout { get; set; }
 
     [JsonPropertyName("returnOnlyCookies")]
     public bool? ReturnOnlyCookies { get; set; }

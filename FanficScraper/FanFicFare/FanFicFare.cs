@@ -142,13 +142,13 @@ public class FanFicFare : IFanFicFare
 
     public static void WriteCookiesInMozillaFormat(
         Stream cookiesFs,
-        ChallengeResult result)
+        ChallengeSolution solution)
     {
         using var writer = new StreamWriter(cookiesFs, leaveOpen: true)
         {
             NewLine = "\n"
         };
-        var cookies = result.Cookies;
+        var cookies = solution.Cookies;
         if (cookies != null)
         {
             writer.WriteLine("# HTTP Cookie File");

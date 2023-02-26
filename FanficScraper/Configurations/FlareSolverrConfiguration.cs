@@ -7,4 +7,6 @@ public class FlareSolverrConfiguration
     public string Address { get; set; } = "http://localhost:8191";
 
     public int TimeoutInMilliseconds { get; set; } = 60000;
+
+    public string? UrlsToSolve { get; set; } = null;
 }
