@@ -1,4 +1,5 @@
 using System.Net;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using FanficScraper.Configurations;
@@ -17,12 +18,17 @@ public class FlareSolverr : IChallengeSolver
     
     public async Task<ChallengeSolution> Solve(Uri uri)
     {
-        var response = await this.client.PostAsJsonAsync("/v1", new FlareSolverrGetRequest()
+        var request = new FlareSolverrGetRequest()
         {
             Url = uri.ToString(),
             ReturnOnlyCookies = true,
             MaxTimeout = (long)client.Timeout.TotalMilliseconds
-        });
+        };
+        
+        var response = await this.client.PostAsync("/v1", new StringContent(
+            content: JsonSerializer.Serialize(request),
+            encoding: Encoding.UTF8,
+            mediaType: "application/json"));
 
         var flareSolverrGetResponse = await JsonSerializer.DeserializeAsync<FlareSolverrGetResponse>(
             await response.Content.ReadAsStreamAsync());
