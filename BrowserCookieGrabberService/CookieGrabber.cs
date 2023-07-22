@@ -44,11 +44,11 @@ public class FirefoxCookieGrabber
             return Enumerable.Empty<CookieDto>();
         }
 
-        var dottedOrigin = "." + origin;
+        string dottedSource = Regex.Match("." + origin, @".*\.([^.]+\.[^.]+)", RegexOptions.Singleline).Groups[1].Value;
         
-        await using var cookieContext = this.contextFactory.CreateDbContext();
+        await using var cookieContext = await this.contextFactory.CreateDbContextAsync();
         var dbCookies = await cookieContext.MozCookies
-            .Where(cookie => cookie.Host.EndsWith(dottedOrigin))
+            .Where(cookie => cookie.Host.EndsWith(dottedSource) && origin.Contains(cookie.Host))
             .ToListAsync();
         return dbCookies
             .Select(cookie => new CookieDto()

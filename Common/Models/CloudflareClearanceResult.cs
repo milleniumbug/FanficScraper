@@ -6,5 +6,5 @@ public class CloudflareClearanceResult
     
     public string? CookiesMozillaFormat { get; set; }
     
-    public IEnumerable<CookieDto> Cookies { get; set; }
+    public IEnumerable<CookieDto>? Cookies { get; set; }
 }

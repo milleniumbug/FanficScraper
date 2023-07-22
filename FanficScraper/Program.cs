@@ -81,7 +81,8 @@ if (dataConfiguration.CookieGrabber.EnableCookieGrabber)
                 {
                     BaseAddress = new Uri(c.Address),
                     Timeout = TimeSpan.FromMilliseconds(c.TimeoutInMilliseconds)
-                })));
+                },
+                provider.GetRequiredService<ILogger<CookieGrabberSolver>>())));
 }
 
 builder.Services.AddScoped<IFanFicFare>(provider =>
