@@ -1,3 +1,4 @@
+using Common;
 using FanficScraper.Utils;
 
 namespace FanficScraper.FanFicFare.Challenges;

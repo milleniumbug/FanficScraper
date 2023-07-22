@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using System.Security.Cryptography;
 using FanficScraper;
 using FanficScraper.Configurations;
@@ -26,15 +27,22 @@ builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddSingleton<PhraseGenerator>();
 builder.Services.TryAddSingleton(_ =>
     RandomNumberGenerator.Create());
+
+if (dataConfiguration.FlareSolverr.EnableFlareSolverr && dataConfiguration.CookieGrabber.EnableCookieGrabber)
+{
+    throw new InvalidDataException("both can't be used at the same time");
+}
+
 if (dataConfiguration.FlareSolverr.EnableFlareSolverr)
 {
-    var policy = dataConfiguration.FlareSolverr.UrlsToSolve == null
+    var c = dataConfiguration.FlareSolverr;
+    var policy = c.UrlsToSolve == null
         ? FilteringChallengeSolver.InclusionType.SolveAllChallengesExceptOnTheList
         : FilteringChallengeSolver.InclusionType.SolveNoChallengeExceptOnTheList;
 
-    var urlsToSolve = dataConfiguration.FlareSolverr.UrlsToSolve == null
+    var urlsToSolve = c.UrlsToSolve == null
         ? Array.Empty<string>()
-        : dataConfiguration.FlareSolverr.UrlsToSolve.Split(";",
+        : c.UrlsToSolve.Split(";",
             StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
     
     builder.Services.AddSingleton<IChallengeSolver>(provider =>
@@ -45,11 +53,35 @@ if (dataConfiguration.FlareSolverr.EnableFlareSolverr)
                 new FlareSolverr(
                     new HttpClient()
                     {
-                        BaseAddress = new Uri(dataConfiguration.FlareSolverr.Address),
-                        Timeout = TimeSpan.FromMilliseconds(dataConfiguration.FlareSolverr.TimeoutInMilliseconds)
+                        BaseAddress = new Uri(c.Address),
+                        Timeout = TimeSpan.FromMilliseconds(c.TimeoutInMilliseconds)
                     }),
                 TimeSpan.FromMinutes(5),
                 provider.GetRequiredService<ILogger<CachingChallengeSolver>>())));
+}
+
+if (dataConfiguration.CookieGrabber.EnableCookieGrabber)
+{
+    var c = dataConfiguration.CookieGrabber;
+    var policy = c.UrlsToSolve == null
+        ? FilteringChallengeSolver.InclusionType.SolveAllChallengesExceptOnTheList
+        : FilteringChallengeSolver.InclusionType.SolveNoChallengeExceptOnTheList;
+
+    var urlsToSolve = c.UrlsToSolve == null
+        ? Array.Empty<string>()
+        : c.UrlsToSolve.Split(";",
+            StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+    
+    builder.Services.AddSingleton<IChallengeSolver>(provider =>
+        new FilteringChallengeSolver(
+            policy,
+            urlsToSolve,
+            new CookieGrabberSolver(
+                new HttpClient()
+                {
+                    BaseAddress = new Uri(c.Address),
+                    Timeout = TimeSpan.FromMilliseconds(c.TimeoutInMilliseconds)
+                })));
 }
 
 builder.Services.AddScoped<IFanFicFare>(provider =>

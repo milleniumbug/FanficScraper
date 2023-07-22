@@ -16,6 +16,8 @@ namespace FanficScraper.Configurations
         
         public bool DisableAutoUpdate { get; set; }
 
-        public FlareSolverrConfiguration FlareSolverr { get; set; } = new FlareSolverrConfiguration();
+        public FlareSolverrConfiguration FlareSolverr { get; set; } = new();
+        
+        public CookieGrabberConfiguration CookieGrabber { get; set; } = new();
     }
 }

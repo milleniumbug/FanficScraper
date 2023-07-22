@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Text.Json;
 using System.Web;
+using Common;
 using FanficScraper.FanFicFare.Challenges;
 using HtmlAgilityPack;
 using Microsoft.AspNetCore.Components.Web;
@@ -72,7 +73,7 @@ public class FanFicFare : IFanFicFare
                 {
                     cookiesFilePath = Path.GetTempFileName();
                     await using var cookiesFs = File.Create(cookiesFilePath);
-                    WriteCookiesInMozillaFormat(cookiesFs, solved);
+                    MozillaCookieUtils.WriteCookiesInMozillaFormat(cookiesFs, solved.Cookies);
                     psi.ArgumentList.Add($"--mozilla-cookies={cookiesFilePath}");
                 }
             }
@@ -162,28 +163,6 @@ public class FanFicFare : IFanFicFare
                 }
             }
         });
-    }
-
-    public static void WriteCookiesInMozillaFormat(
-        Stream cookiesFs,
-        ChallengeSolution solution)
-    {
-        using var writer = new StreamWriter(cookiesFs, leaveOpen: true)
-        {
-            NewLine = "\n"
-        };
-        var cookies = solution.Cookies;
-        if (cookies != null)
-        {
-            writer.WriteLine("# HTTP Cookie File");
-            foreach (var cookie in cookies)
-            {
-                // seems to be irrelevant nowadays, we need to shut up the Python cookiejar assert here
-                bool includeSubdomains = cookie.Domain.StartsWith(".", StringComparison.Ordinal);
-                writer.WriteLine($"{cookie.Domain}\t{(includeSubdomains ? "TRUE" : "FALSE")}\t{cookie.Path}\t{(cookie.Secure ? "TRUE" : "FALSE")}\t{new DateTimeOffset(cookie.Expires).ToUnixTimeSeconds()}\t{cookie.Name}\t{cookie.Value}");
-            }
-        }
-        writer.Flush();
     }
 
     private DateTime ParseDate(string s)

@@ -1,4 +1,5 @@
 using System.Text;
+using Common;
 using FanficScraper.Configurations;
 using FanficScraper.FanFicFare;
 using FanficScraper.FanFicFare.Challenges;
@@ -46,7 +47,7 @@ public class Sandbox
     private void PrintOutCookies(ChallengeSolution solution)
     {
         using var memory = new MemoryStream();
-        FanFicFare.WriteCookiesInMozillaFormat(memory, solution);
+        MozillaCookieUtils.WriteCookiesInMozillaFormat(memory, solution.Cookies);
 
         var s = Encoding.UTF8.GetString(memory.ToArray());
         testOutputHelper.WriteLine(s);

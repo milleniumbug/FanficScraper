@@ -1,4 +1,4 @@
-namespace FanficScraper.Utils;
+namespace Common;
 
 public static class UriExtensions
 {
