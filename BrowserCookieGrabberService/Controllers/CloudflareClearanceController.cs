@@ -22,9 +22,11 @@ public class CloudflareClearanceController : ControllerBase
     }
 
     [HttpGet("SetUserAgent")]
-    public void SetUserAgent(
+    public string SetUserAgent(
         [FromServices] UserAgentGrabber userAgentGrabber)
     {
         userAgentGrabber.SetUserAgent(HttpContext.Request.Headers[HeaderNames.UserAgent]);
+
+        return "Success: You can close the tab.";
     }
 }

@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using BrowserCookieGrabberService;
 using BrowserCookieGrabberService.Database.FirefoxCookies;
 using Microsoft.EntityFrameworkCore;
@@ -35,4 +36,23 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-app.Run();
+await app.StartAsync();
+
+var url = app.Urls.First();
+var urlBuilder = new UriBuilder(new Uri(url))
+{
+    Host = "localhost",
+    Path = "SetUserAgent"
+};
+using var firefoxProcess = new Process()
+{
+    StartInfo = new ProcessStartInfo()
+    {
+        UseShellExecute = false,
+        FileName = "firefox",
+        ArgumentList = { urlBuilder.ToString() }
+    }
+};
+firefoxProcess.Start();
+
+await app.WaitForShutdownAsync();
