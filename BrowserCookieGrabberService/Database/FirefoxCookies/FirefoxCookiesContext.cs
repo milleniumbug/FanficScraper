@@ -4,6 +4,8 @@ namespace BrowserCookieGrabberService.Database.FirefoxCookies
 {
     public partial class FirefoxCookiesContext : DbContext
     {
+        private readonly string? path;
+        
         public FirefoxCookiesContext()
         {
         }
@@ -11,6 +13,12 @@ namespace BrowserCookieGrabberService.Database.FirefoxCookies
         public FirefoxCookiesContext(DbContextOptions<FirefoxCookiesContext> options)
             : base(options)
         {
+        }
+        
+        public FirefoxCookiesContext(DbContextOptions<FirefoxCookiesContext> options, string path)
+            : this(options)
+        {
+            this.path = path;
         }
 
         public virtual DbSet<MozCookie> MozCookies { get; set; } = null!;
@@ -80,5 +88,14 @@ namespace BrowserCookieGrabberService.Database.FirefoxCookies
         }
 
         partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
+
+        public override void Dispose()
+        {
+            base.Dispose();
+            if (path != null)
+            {
+                File.Delete(path);
+            }
+        }
     }
 }
