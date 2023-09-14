@@ -12,6 +12,10 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+var firefoxCookiesConfigurationSection = builder.Configuration.GetSection("FirefoxCookies");
+builder.Services.Configure<FirefoxCookiesGrabberConfiguration>(firefoxCookiesConfigurationSection);
+var firefoxCookies = firefoxCookiesConfigurationSection.Get<FirefoxCookiesGrabberConfiguration>();
+
 builder.Services.AddDbContextFactory<FirefoxCookiesContext, FirefoxCookiesContextFactory>();
 builder.Services.AddSingleton<UserAgentGrabber>();
 builder.Services.AddScoped<FirefoxCookieGrabber>(provider =>
@@ -19,8 +23,8 @@ builder.Services.AddScoped<FirefoxCookieGrabber>(provider =>
     return new FirefoxCookieGrabber(
         provider.GetRequiredService<ILogger<FirefoxCookieGrabber>>(),
         provider.GetRequiredService<IDbContextFactory<FirefoxCookiesContext>>(),
-        new string[] { "https://scribblehub.com", "https://www.scribblehub.com" },
-        new string[] { "*cf*" });
+        firefoxCookies.SitesAllowed.Split(),
+        new string[] { firefoxCookies.CookieNamePattern });
 });
 
 var app = builder.Build();

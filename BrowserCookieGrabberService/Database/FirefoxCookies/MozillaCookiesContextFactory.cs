@@ -1,18 +1,24 @@
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace BrowserCookieGrabberService.Database.FirefoxCookies;
 
 public class FirefoxCookiesContextFactory : IDbContextFactory<FirefoxCookiesContext>
 {
-    public FirefoxCookiesContextFactory(DbContextOptions options)
+    private readonly FirefoxCookiesGrabberConfiguration config;
+
+    public FirefoxCookiesContextFactory(
+        DbContextOptions options,
+        IOptions<FirefoxCookiesGrabberConfiguration> config)
     {
+        this.config = config.Value;
     }
     
     public FirefoxCookiesContext CreateDbContext()
     {
-        var cookieSqlitePath = "/home/milleniumbug/.mozilla/firefox/dcsaxgd2.default/cookies.sqlite";
         var path = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString().Replace("-", ""));
-        File.Copy(cookieSqlitePath, path);
+        File.Copy(config.PathToProfile, path);
         var connectionString = $"Data Source={path};Mode=ReadOnly";
         return new FirefoxCookiesContext(
             new DbContextOptionsBuilder<FirefoxCookiesContext>()
