@@ -60,6 +60,6 @@ public class CookieGrabberSolver : IChallengeSolver
 
     public void Invalidate(ChallengeSolution solved)
     {
-        
+        // do nothing
     }
 }

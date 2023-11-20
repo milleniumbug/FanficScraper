@@ -42,7 +42,7 @@ public class FilteringChallengeSolver : IChallengeSolver
         }
         else
         {
-            return ChallengeSolution.GetNeverExipiringNullSolution(new Uri(origin));
+            return ChallengeSolution.GetNeverExpiringNullSolution(new Uri(origin));
         }
     }
 

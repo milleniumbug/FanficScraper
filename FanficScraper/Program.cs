@@ -71,18 +71,28 @@ if (dataConfiguration.CookieGrabber.EnableCookieGrabber)
         ? Array.Empty<string>()
         : c.UrlsToSolve.Split(";",
             StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
-    
-    builder.Services.AddSingleton<IChallengeSolver>(provider =>
-        new FilteringChallengeSolver(
+
+    FilteringChallengeSolver MakeSolver(IServiceProvider provider, string url)
+    {
+        var logger = provider.GetRequiredService<ILogger<Program>>();
+        logger.LogInformation("Creating a solver for {Url}", url);
+        return new FilteringChallengeSolver(
             policy,
             urlsToSolve,
             new CookieGrabberSolver(
                 new HttpClient()
                 {
-                    BaseAddress = new Uri(c.Address),
+                    BaseAddress = new Uri(url),
                     Timeout = TimeSpan.FromMilliseconds(c.TimeoutInMilliseconds)
                 },
-                provider.GetRequiredService<ILogger<CookieGrabberSolver>>())));
+                provider.GetRequiredService<ILogger<CookieGrabberSolver>>()));
+    }
+
+    builder.Services.AddSingleton<IChallengeSolver>(provider => 
+        new CompositeChallengeSolver(
+            c.Address.Split(" ", StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+                .Select(url => MakeSolver(provider, url)),
+            provider.GetRequiredService<ILogger<CompositeChallengeSolver>>()));
 }
 
 builder.Services.AddScoped<IFanFicFare>(provider =>

@@ -9,14 +9,16 @@
 
     <ItemGroup>
       <PackageReference Include="HtmlAgilityPack" Version="1.11.42" />
+      <PackageReference Include="logger-discord-provider" Version="2.3.0" />
       <PackageReference Include="Microsoft.AspNetCore.HttpOverrides" Version="2.2.0" />
       <PackageReference Include="Microsoft.AspNetCore.Identity" Version="2.2.0" />
-      <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.4" />
-      <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.4">
+      <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.25" />
+      <PackageReference Include="SQLitePCLRaw.core" Version="2.1.2" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.25">
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       </PackageReference>
-      <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.0.4" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.0.25" />
     </ItemGroup>
 
     <ItemGroup>

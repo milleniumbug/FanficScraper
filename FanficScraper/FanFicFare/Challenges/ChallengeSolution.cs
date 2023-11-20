@@ -8,7 +8,7 @@ public record ChallengeSolution(
     Uri Origin,
     DateTime ExpiryTime)
 {
-    public static ChallengeSolution GetNeverExipiringNullSolution(Uri origin)
+    public static ChallengeSolution GetNeverExpiringNullSolution(Uri origin)
     {
         return new ChallengeSolution(
             UserAgent: null,
