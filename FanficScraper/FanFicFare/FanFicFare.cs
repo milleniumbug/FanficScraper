@@ -4,7 +4,8 @@ using System.Globalization;
 using System.Text.Json;
 using System.Web;
 using Common;
-using FanficScraper.FanFicFare.Challenges;
+using Common.Challenges;
+using Common.Scraping;
 using HtmlAgilityPack;
 using Microsoft.AspNetCore.Components.Web;
 
@@ -197,7 +198,7 @@ public class FanFicFare : IFanFicFare
             var document = new HtmlDocument();
             document.LoadHtml(descriptionHtml);
             // https://github.com/zzzprojects/html-agility-pack/issues/427
-            return HttpUtility.HtmlDecode(document.DocumentNode.InnerText).Split("\n", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            return document.DocumentNode.GetInnerTextForReal().Split("\n", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
         }
         catch (Exception ex)
         {

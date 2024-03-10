@@ -1,4 +1,4 @@
-namespace FanficScraper.Api;
+namespace Common.Api;
 
 public record GetStoryQueryResponse : StoryDetails
 {

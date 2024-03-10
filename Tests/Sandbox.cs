@@ -1,8 +1,8 @@
 using System.Text;
 using Common;
+using Common.Challenges;
 using FanficScraper.Configurations;
 using FanficScraper.FanFicFare;
-using FanficScraper.FanFicFare.Challenges;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit.Abstractions;
 

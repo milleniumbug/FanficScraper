@@ -1,4 +1,6 @@
-namespace FanficScraper.FanFicFare.Challenges;
+using Microsoft.Extensions.Logging;
+
+namespace Common.Challenges;
 
 public class CompositeChallengeSolver : IChallengeSolver
 {

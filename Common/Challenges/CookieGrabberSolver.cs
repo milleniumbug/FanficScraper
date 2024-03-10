@@ -1,11 +1,11 @@
 using System.Net;
 using System.Text.Json;
 using System.Web;
-using Common;
 using Common.Models;
 using FanficScraper.Utils;
+using Microsoft.Extensions.Logging;
 
-namespace FanficScraper.FanFicFare.Challenges;
+namespace Common.Challenges;
 
 public class CookieGrabberSolver : IChallengeSolver
 {
@@ -18,7 +18,7 @@ public class CookieGrabberSolver : IChallengeSolver
         this.logger = logger;
     }
 
-    public async Task<ChallengeSolution> Solve(Uri uri)
+    public async Task<(ChallengeSolution solution, CloudflareClearanceResult result)> Solve(Uri uri)
     {
         var response = await this.client.GetAsync($"/ClearForWebsite?url={HttpUtility.UrlEncode(uri.ToString())}");
         
@@ -34,7 +34,7 @@ public class CookieGrabberSolver : IChallengeSolver
         var expiryTime = expiryTimeInSeconds == null
             ? DateTime.UtcNow.AddDays(14)
             : DateTimeOffset.FromUnixTimeSeconds((long)expiryTimeInSeconds).UtcDateTime;
-
+        
         var solution = new ChallengeSolution(
             UserAgent: result.UserAgent,
             Cookies: new ToStringableReadOnlyList<Cookie>(
@@ -54,8 +54,13 @@ public class CookieGrabberSolver : IChallengeSolver
             Origin: new Uri(uri.GetOrigin()));
         
         logger.LogInformation("Found solution {0}", solution);
-        
-        return solution;
+
+        return (solution, result);
+    }
+
+    async Task<ChallengeSolution> IChallengeSolver.Solve(Uri uri)
+    {
+        return (await Solve(uri)).solution;
     }
 
     public void Invalidate(ChallengeSolution solved)

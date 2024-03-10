@@ -1,6 +1,4 @@
-using FanficScraper.Data;
-
-namespace FanficScraper.Api;
+namespace Common.Api;
 
 public class GetStoryAsyncQueryResponse
 {

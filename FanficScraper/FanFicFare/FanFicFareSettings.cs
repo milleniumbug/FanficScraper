@@ -1,5 +1,5 @@
+using Common.Challenges;
 using FanficScraper.Configurations;
-using FanficScraper.FanFicFare.Challenges;
 
 namespace FanficScraper.FanFicFare;
 

@@ -1,4 +1,4 @@
-namespace FanficScraper.FanFicFare.Challenges;
+namespace Common.Challenges;
 
 public interface IChallengeSolver
 {

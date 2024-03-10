@@ -1,6 +1,6 @@
 using System.Net;
 
-namespace FanficScraper.FanFicFare.Challenges;
+namespace Common.Challenges;
 
 public record ChallengeSolution(
     string? UserAgent,

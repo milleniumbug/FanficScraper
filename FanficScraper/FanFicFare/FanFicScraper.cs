@@ -1,46 +1,38 @@
 using System.Text.Json;
-using System.Web;
-using FanficScraper.Api;
+using Common;
+using Common.Api;
 using FanficScraper.Configurations;
-using FanficScraper.Data;
 using Microsoft.Extensions.Options;
+using DownloadJobStatus = Common.Api.DownloadJobStatus;
 
 namespace FanficScraper.FanFicFare;
 
 public class FanFicScraper : IFanFicFare
 {
-    private readonly HttpClient client;
+    private readonly FanFicScraperClient fanFicScraperClient;
     private readonly ILogger<FanFicScraper> logger;
     private readonly DataConfiguration dataConfiguration;
 
     public FanFicScraper(
-        HttpClient client,
+        FanFicScraperClient fanFicScraperClient,
         IOptions<DataConfiguration> dataConfiguration,
         ILogger<FanFicScraper> logger)
     {
-        this.client = client;
+        this.fanFicScraperClient = fanFicScraperClient;
         this.logger = logger;
         this.dataConfiguration = dataConfiguration.Value;
     }
     
     public async Task<FanFicStoryDetails> Run(string storyUrl, bool metadataOnly = false, bool force = false)
     {
-        var jsonOpts = new JsonSerializerOptions()
-        {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-        };
-        
-        using var addResponse = await this.client.PostAsJsonAsync("Api/StoryAsync", new AddStoryAsyncCommand()
-        {
-            Url = storyUrl,
-            Passphrase = this.dataConfiguration.SecondaryFanFicScraperPassphrase
-                         ?? throw new InvalidOperationException("missing secondary instance passphrase"),
-            Force = force
-        });
-        addResponse.EnsureSuccessStatusCode();
-
-        var addResult = await JsonSerializer.DeserializeAsync<AddStoryAsyncCommandResponse>(
-            await addResponse.Content.ReadAsStreamAsync(), jsonOpts) ?? throw new JsonException();
+        var addResult = await fanFicScraperClient.AddStoryAsync(
+            new AddStoryAsyncCommand()
+            {
+                Url = storyUrl,
+                Passphrase = this.dataConfiguration.SecondaryFanFicScraperPassphrase
+                             ?? throw new InvalidOperationException("missing secondary instance passphrase"),
+                Force = force
+            });
 
         this.logger.LogInformation("scheduled a download job to the secondary FanFicScraper instance");
         
@@ -48,11 +40,7 @@ public class FanFicScraper : IFanFicFare
         do
         {
             this.logger.LogInformation("periodic secondary FanFicScraper check");
-            using var queryResponse = await this.client.GetAsync($"Api/StoryAsync/{addResult.JobId}");
-
-            queryResponse.EnsureSuccessStatusCode();
-            queryResult = await JsonSerializer.DeserializeAsync<GetStoryAsyncQueryResponse>(
-                await queryResponse.Content.ReadAsStreamAsync(), jsonOpts) ?? throw new JsonException();
+            queryResult = await fanFicScraperClient.CheckAdd(addResult);
 
             await Task.Delay(5000);
         } while (queryResult.Status == DownloadJobStatus.NotYetStarted || queryResult.Status == DownloadJobStatus.Started);
@@ -63,7 +51,6 @@ public class FanFicScraper : IFanFicFare
             throw new HttpRequestException("story download failed");
         }
         
-
         return await FanFicStoryDetails(queryResult.StoryId);
 
         async Task<FanFicStoryDetails> FanFicStoryDetails(string id)
@@ -71,17 +58,12 @@ public class FanFicScraper : IFanFicFare
             if (!metadataOnly)
             {
                 await using var file = File.Create(Path.Combine(this.dataConfiguration.StoriesDirectory, id));
-                using var storyResponse = await this.client.GetAsync($"Story/{id}");
-                storyResponse.EnsureSuccessStatusCode();
-                await storyResponse.Content.CopyToAsync(file);
+                await using var story = await fanFicScraperClient.DownloadStoryById(id);
+                await story.CopyToAsync(file);
                 this.logger.LogInformation("downloaded story from secondary FanFicScraper instance");
             }
 
-            using var getResponse = await this.client.GetAsync($"Api/Story/{id}");
-            getResponse.EnsureSuccessStatusCode();
-
-            var getResult = await JsonSerializer.DeserializeAsync<GetStoryQueryResponse>(
-                await getResponse.Content.ReadAsStreamAsync(), jsonOpts) ?? throw new JsonException();
+            var getResult = await this.fanFicScraperClient.GetStoryById(id);
 
             this.logger.LogInformation("downloaded metadata from secondary FanFicScraper instance");
             

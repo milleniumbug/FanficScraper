@@ -1,10 +1,11 @@
 using System.Security.Claims;
 using System.Security.Cryptography;
+using Common;
+using Common.Challenges;
 using FanficScraper;
 using FanficScraper.Configurations;
 using FanficScraper.Data;
 using FanficScraper.FanFicFare;
-using FanficScraper.FanFicFare.Challenges;
 using FanficScraper.Services;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
@@ -100,11 +101,15 @@ builder.Services.AddScoped<IFanFicFare>(provider =>
     var clients = new List<IFanFicFare>();
     if (!string.IsNullOrWhiteSpace(dataConfiguration.SecondaryFanFicScraperUrl))
     {
-        clients.Add(new FanFicScraper(new HttpClient()
-        {
-            BaseAddress = new Uri(dataConfiguration.SecondaryFanFicScraperUrl),
-            Timeout = TimeSpan.FromMinutes(30)
-        }, Options.Create(dataConfiguration), provider.GetRequiredService<ILogger<FanFicScraper>>()));
+        clients.Add(new FanFicScraper(
+            new FanFicScraperClient(
+                new HttpClient()
+                {
+                    BaseAddress = new Uri(dataConfiguration.SecondaryFanFicScraperUrl),
+                    Timeout = TimeSpan.FromMinutes(30)
+                }),
+            Options.Create(dataConfiguration),
+            provider.GetRequiredService<ILogger<FanFicScraper>>()));
     }
 
     clients.Add(new FanFicFare(new FanFicFareSettings()

@@ -1,6 +1,6 @@
-namespace FanficScraper.Api;
+namespace Common.Api;
 
-public class AddStoryCommand
+public class AddStoryAsyncCommand
 {
     public string Url { get; set; }
     

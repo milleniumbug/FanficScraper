@@ -1,8 +1,7 @@
 using System.Collections.Concurrent;
-using Common;
-using FanficScraper.Utils;
+using Microsoft.Extensions.Logging;
 
-namespace FanficScraper.FanFicFare.Challenges;
+namespace Common.Challenges;
 
 public class CachingChallengeSolver : IChallengeSolver
 {

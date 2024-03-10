@@ -1,7 +1,9 @@
+using Common.Api;
 using FanficScraper.Data;
 using FanficScraper.FanFicFare;
 using FanficScraper.Services;
 using Microsoft.AspNetCore.Mvc;
+using DownloadJobStatus = Common.Api.DownloadJobStatus;
 
 namespace FanficScraper.Api;
 
@@ -89,7 +91,7 @@ public class ApiController : Controller
                 new GetStoryAsyncQueryResponse(
                     jobId: id,
                     storyId: jobDetails.StoryId,
-                    status: jobDetails.Status,
+                    status: (DownloadJobStatus)jobDetails.Status,
                     url: jobDetails.Url));
         }
         else
