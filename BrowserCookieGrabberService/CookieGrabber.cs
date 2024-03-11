@@ -63,7 +63,7 @@ public class FirefoxCookieGrabber
                 //SameSite = cookie.SameSite != 0,
                 //Session = cookie
             })
-            //.Where(cookie => cookie.Expires)
+            .Where(cookie => cookieNamePatterns.Any(pattern => pattern.IsMatch(cookie.Name)))
             .ToList();
     }
 }
