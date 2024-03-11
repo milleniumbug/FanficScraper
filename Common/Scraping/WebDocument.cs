@@ -1,3 +1,4 @@
+using System.Net;
 using HtmlAgilityPack;
 
 namespace Common.Scraping;

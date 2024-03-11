@@ -25,11 +25,7 @@ public class CachingScraper
         var html = new HtmlDocument();
 
         var rawHtml = await cache.Get(url);
-        if(rawHtml != null)
-        {
-            html.LoadHtml(rawHtml);
-        }
-        else
+        if(rawHtml == null)
         {
             var response = await client.GetAsync(url);
             if (response.IsSuccessStatusCode)
@@ -43,9 +39,9 @@ public class CachingScraper
                     $"<html>{HttpUtility.HtmlEncode(response.StatusCode.ToString())}</html>";
                 await cache.Set(url, rawHtml);
             }
-            
-            html.LoadHtml(rawHtml);
         }
+        
+        html.LoadHtml(rawHtml);
 
         return new WebDocument(html, url);
     }

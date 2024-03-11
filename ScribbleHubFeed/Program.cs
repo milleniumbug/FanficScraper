@@ -11,7 +11,7 @@ var scribbleHubAddress = "https://www.scribblehub.com";
 var passphrase = "<TO FILL>";
 var fanficscraperAddress = new Uri("<TO FILL>");
 var cookieGrabberAddress = new Uri("<TO FILL>");
-var scrapeCache = new LocalDirectoryCache("<TO FILL>");
+var scrapeCache = new NullCache<string, string>();
 
 var fanficscraper = new FanFicScraperClient(
     new HttpClient()
@@ -24,38 +24,22 @@ var loggerBuilder = LoggerFactory.Create(builder =>
     builder.AddConsole();
 });
 
-var challengeSolver = new CookieGrabberSolver(
-    new HttpClient()
-    {
-        BaseAddress = cookieGrabberAddress,
-        Timeout = TimeSpan.FromMinutes(5),
-    },
-    loggerBuilder.CreateLogger<CookieGrabberSolver>());
+var challengeSolver = new CachingChallengeSolver(
+    new CookieGrabberSolver(
+        new HttpClient()
+        {
+            BaseAddress = cookieGrabberAddress,
+            Timeout = TimeSpan.FromMinutes(5),
+        },
+        loggerBuilder.CreateLogger<CookieGrabberSolver>()),
+    TimeSpan.FromMinutes(30),
+    loggerBuilder.CreateLogger<CachingChallengeSolver>());
 
-var (solution, _) = await challengeSolver.Solve(new Uri(scribbleHubAddress));
-
-var cookieContainer = new CookieContainer();
-using var handler = new HttpClientHandler()
-{
-    CookieContainer = cookieContainer
-};
+using var handler = new ChallengeSolverHandler(challengeSolver);
 var client = new HttpClient(handler)
 {
     BaseAddress = new Uri(scribbleHubAddress)
 };
-
-if (solution.Cookies != null)
-{
-    foreach (var cookie in solution.Cookies)
-    {
-        cookieContainer.Add(new Uri(scribbleHubAddress), cookie);
-    }
-}
-
-if (solution.UserAgent != null)
-{
-    client.DefaultRequestHeaders.Add("User-Agent", solution.UserAgent);
-}
 
 var scraper = new CachingScraper(
     client,
@@ -63,30 +47,39 @@ var scraper = new CachingScraper(
     
 var scribbleHubFeed = new ScribbleHubFeed.ScribbleHubFeed(scraper);
 
-var results = scribbleHubFeed.ByTag(
-    ScribbleHubTags.Transgender,
-    SortCriteria.DateAdded,
-    SortOrder.Descending,
-    StoryStatus.Ongoing);
-
-var jobs = new List<AddStoryAsyncCommandResponse>();
-await foreach (var page in results)
+try
 {
-    foreach (var story in page)
+    var results = scribbleHubFeed.ByTag(
+        ScribbleHubTags.Transgender,
+        SortCriteria.DateAdded,
+        SortOrder.Descending,
+        StoryStatus.Ongoing);
+
+    var jobs = new List<AddStoryAsyncCommandResponse>();
+    int x = 0;
+    await foreach (var page in results)
     {
-        Console.WriteLine(story);
-        var downloadJob = await fanficscraper.AddStoryAsync(new AddStoryAsyncCommand()
+        foreach (var story in page)
         {
-            Force = false,
-            Passphrase = passphrase,
-            Url = story.Uri.ToString()
-        });
-        jobs.Add(downloadJob);
+            Console.WriteLine(story);
+            var downloadJob = await fanficscraper.AddStoryAsync(new AddStoryAsyncCommand()
+            {
+                Force = false,
+                Passphrase = passphrase,
+                Url = story.Uri.ToString()
+            });
+            jobs.Add(downloadJob);
+        }
+        Console.WriteLine("end of page");
+    }
+
+    foreach (var job in jobs)
+    {
+        var result = await fanficscraper.AwaitAdd(job);
+        Console.WriteLine($"{result.Url} - {result.Status} {result.StoryId}");
     }
 }
-
-foreach (var job in jobs)
+catch (Exception ex)
 {
-    var result = await fanficscraper.AwaitAdd(job);
-    Console.WriteLine($"{result.Url} - {result.Status} {result.StoryId}");
+    Console.WriteLine(ex.Message);
 }
