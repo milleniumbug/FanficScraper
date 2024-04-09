@@ -11,5 +11,7 @@ public class FanFicFareSettings
 
     public string? TargetDirectory { get; set; }
 
+    public string? FanFicFareExecutablePath { get; set; }
+
     public IChallengeSolver? ChallengeSolver { get; set; }
 }

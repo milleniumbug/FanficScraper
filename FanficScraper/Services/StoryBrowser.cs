@@ -19,10 +19,6 @@ public class StoryBrowser
     
     public async Task<Story?> FindByUrl(string url)
     {
-        var fanFicFareSettings = new FanFicFareSettings()
-        {
-            IsAdult = true,
-        };
         var fanFicStoryDetails = await fanFicFare.Run(url, metadataOnly: true, force: false);
 
         return await this.storyContext.Stories

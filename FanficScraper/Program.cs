@@ -117,6 +117,7 @@ builder.Services.AddScoped<IFanFicFare>(provider =>
         IsAdult = true,
         TargetDirectory = dataConfiguration.StoriesDirectory,
         IncludeImages = true,
+        FanFicFareExecutablePath = dataConfiguration.FanFicFareExecutablePath,
         ChallengeSolver = provider.GetService<IChallengeSolver>()
     }, provider.GetRequiredService<ILogger<FanFicFare>>()));
 

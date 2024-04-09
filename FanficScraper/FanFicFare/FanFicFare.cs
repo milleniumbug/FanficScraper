@@ -29,7 +29,7 @@ public class FanFicFare : IFanFicFare
             string? cookiesFilePath = null;
             var psi = new ProcessStartInfo()
             {
-                FileName = "fanficfare",
+                FileName = settings.FanFicFareExecutablePath ?? "fanficfare",
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 UseShellExecute = false,

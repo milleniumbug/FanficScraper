@@ -19,5 +19,7 @@ namespace FanficScraper.Configurations
         public FlareSolverrConfiguration FlareSolverr { get; set; } = new();
         
         public CookieGrabberConfiguration CookieGrabber { get; set; } = new();
+        
+        public string? FanFicFareExecutablePath { get; set; }
     }
 }
