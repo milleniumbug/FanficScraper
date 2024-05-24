@@ -4,6 +4,8 @@ using Common.Challenges;
 using FanficScraper.Configurations;
 using FanficScraper.FanFicFare;
 using Microsoft.Extensions.Logging.Abstractions;
+using Newtonsoft.Json;
+using ScribbleHubFeed;
 using Xunit.Abstractions;
 
 namespace TestProject1;
@@ -17,7 +19,22 @@ public class Sandbox
         this.testOutputHelper = testOutputHelper;
     }
 
-    [Fact]
+    public void Json()
+    {
+        var s = new SeriesFinderSettings()
+        {
+            Status = StoryStatus.All,
+            SortDirection = SortOrder.Descending,
+            SortBy = SortCriteria.DateAdded,
+            TagInclusion = Alternative.And,
+            IncludedTags = new []{ Tags.Parse("Transgender") }
+        };
+
+        var result = System.Text.Json.JsonSerializer.Serialize(s);
+        var r = System.Text.Json.JsonSerializer.Serialize(result);
+    }
+
+    [Fact(Skip = "needs to be run explicitly")]
     public async Task Sample()
     {
         var cacheSolver = new FilteringChallengeSolver(

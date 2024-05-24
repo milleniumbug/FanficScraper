@@ -22,7 +22,7 @@ public class ApiController : Controller
             return this.Unauthorized();
         }
         
-        var id = await updater.UpdateStory(command.Url, command.Force ?? false);
+        var id = await updater.UpdateStory(new Uri(command.Url), command.Force ?? false);
         return this.Ok(new AddStoryCommandResponse()
         {
             Id = id
@@ -122,7 +122,7 @@ public class ApiController : Controller
         [FromBody] GetMetadataQuery query,
         [FromServices] IFanFicFare fanFicFare)
     {
-        var fanFicStoryDetails = await fanFicFare.Run(query.Url, metadataOnly: true, force: false);
+        var fanFicStoryDetails = await fanFicFare.Run(new Uri(query.Url), metadataOnly: true, force: false);
 
         return this.Ok(new GetMetadataQueryResponse()
         {

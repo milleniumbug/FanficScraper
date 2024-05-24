@@ -17,14 +17,14 @@ public class StoryBrowser
         this.fanFicFare = fanFicFare;
     }
     
-    public async Task<Story?> FindByUrl(string url)
+    public async Task<Story?> FindByUrl(Uri url)
     {
         var fanFicStoryDetails = await fanFicFare.Run(url, metadataOnly: true, force: false);
 
         return await this.storyContext.Stories
             .Include(story => story.StoryData)
             .AsNoTracking()
-            .FirstOrDefaultAsync(story => story.StoryUrl == url);
+            .FirstOrDefaultAsync(story => story.StoryUrl == url.ToString());
     }
     
     public async Task<Story?> FindById(string id)
@@ -51,13 +51,15 @@ public class StoryBrowser
     
     public async Task<IEnumerable<Story>> FindLastUpdated(int count)
     {
-        return await this.storyContext.Stories
+        var stories = await this.storyContext.Stories
             .Include(story => story.StoryData)
             .AsNoTracking()
             .OrderByDescending(story => story.StoryUpdated)
             .ThenByDescending(story => story.LastUpdated)
             .Take(count)
             .ToListAsync();
+
+        return stories;
     }
 
     public async Task<IEnumerable<Story>> FindRecentlyAdded(int count)

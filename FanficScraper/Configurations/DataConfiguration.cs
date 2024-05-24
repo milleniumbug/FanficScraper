@@ -20,6 +20,8 @@ namespace FanficScraper.Configurations
         
         public CookieGrabberConfiguration CookieGrabber { get; set; } = new();
         
+        public ScribbleHubFeedConfiguration ScribbleHub { get; set; } = new();
+        
         public string? FanFicFareExecutablePath { get; set; }
     }
 }

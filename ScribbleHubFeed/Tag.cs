@@ -7,8 +7,25 @@ public enum Tag
     
 }
 
-internal static class Tags
+public static class Tags
 {
+    public static Tag Parse(string s)
+    {
+        return TagMap[s];
+    }
+    
+    public static Tag? TryParse(string s)
+    {
+        if (TagMap.TryGetValue(s, out var tag))
+        {
+            return tag;
+        }
+        else
+        {
+            return null;
+        }
+    }
+    
     public static IReadOnlyDictionary<string, Tag> TagMap { get; } = new ReadOnlyDictionary<string, Tag>(new Dictionary<string, Tag>()
     {
         { "Abandoned Children", (Tag)119 },

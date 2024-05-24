@@ -46,7 +46,7 @@ public class FanFicUpdater
         
         try
         {
-            var fanFicStoryDetails = await RunFanFicFare(oldest.StoryUrl, force: false);
+            var fanFicStoryDetails = await RunFanFicFare(new Uri(oldest.StoryUrl), force: false);
             UpdateStoryEntity(oldest, fanFicStoryDetails, currentDate);
 
             return (fanFicStoryDetails, nextUpdateTime);
@@ -62,7 +62,7 @@ public class FanFicUpdater
         }
     }
 
-    public async Task<string> UpdateStory(string url, bool force)
+    public async Task<string> UpdateStory(Uri url, bool force)
     {
         var fanFicStoryDetails = await RunFanFicFare(url, force: force);
         
@@ -119,7 +119,7 @@ public class FanFicUpdater
             downloadJob.RunnerId = runnerId;
             await this.storyContext.SaveChangesAsync();
             
-            var fanFicStoryDetails = await RunFanFicFare(downloadJob.Url, force: downloadJob.Force);
+            var fanFicStoryDetails = await RunFanFicFare(new Uri(downloadJob.Url), force: downloadJob.Force);
 
             var story = await this.storyContext.Stories
                 .Include(story => story.StoryData)
@@ -218,7 +218,7 @@ public class FanFicUpdater
         story.StoryData.NumWords = fanFicStoryDetails.NumWords;
     }
 
-    private async Task<FanFicStoryDetails> RunFanFicFare(string url, bool force)
+    private async Task<FanFicStoryDetails> RunFanFicFare(Uri url, bool force)
     {
         return await fanFicFare.Run(url, metadataOnly: false, force: force);
     }

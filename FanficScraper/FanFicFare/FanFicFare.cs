@@ -22,7 +22,7 @@ public class FanFicFare : IFanFicFare
         this.logger = logger;
     }
     
-    public Task<FanFicStoryDetails> Run(string storyUrl, bool metadataOnly = false, bool force = false)
+    public Task<FanFicStoryDetails> Run(Uri storyUrl, bool metadataOnly = false, bool force = false)
     {
         return Task.Run(async () =>
         {
@@ -62,7 +62,7 @@ public class FanFicFare : IFanFicFare
             ChallengeSolution? solved = null;
             if (settings.ChallengeSolver != null)
             {
-                solved = await settings.ChallengeSolver.Solve(new Uri(storyUrl));
+                solved = await settings.ChallengeSolver.Solve(storyUrl);
 
                 if (solved.UserAgent != null)
                 {
@@ -87,7 +87,7 @@ public class FanFicFare : IFanFicFare
             psi.ArgumentList.Add("--json-meta");
             psi.ArgumentList.Add("--no-meta-chapters");
             psi.ArgumentList.Add("--");
-            psi.ArgumentList.Add(storyUrl);
+            psi.ArgumentList.Add(storyUrl.ToString());
             try
             {
                 var cmdLog = $"{psi.FileName} {string.Join(" ", psi.ArgumentList)}";

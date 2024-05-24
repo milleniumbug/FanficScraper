@@ -1,7 +1,9 @@
 using System.Security.Claims;
 using System.Security.Cryptography;
 using Common;
+using Common.Caching;
 using Common.Challenges;
+using Common.Scraping;
 using FanficScraper;
 using FanficScraper.Configurations;
 using FanficScraper.Data;
@@ -94,6 +96,21 @@ if (dataConfiguration.CookieGrabber.EnableCookieGrabber)
             c.Address.Split(" ", StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
                 .Select(url => MakeSolver(provider, url)),
             provider.GetRequiredService<ILogger<CompositeChallengeSolver>>()));
+}
+
+if (dataConfiguration.ScribbleHub.EnableScribbleHubFeed)
+{
+    var client = new HttpClient()
+    {
+        Timeout = TimeSpan.FromMilliseconds(dataConfiguration.ScribbleHub.TimeoutInMilliseconds)
+    };
+    builder.Services.AddScoped<CachingScraper>(provider =>
+    {
+        return new CachingScraper(
+            client,
+            new NullCache<string, string>());
+    });
+    builder.Services.AddScoped<ScribbleHubFeed.ScribbleHubFeed>();
 }
 
 builder.Services.AddScoped<IFanFicFare>(provider =>

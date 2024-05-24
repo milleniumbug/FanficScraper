@@ -23,12 +23,12 @@ public class FanFicScraper : IFanFicFare
         this.dataConfiguration = dataConfiguration.Value;
     }
     
-    public async Task<FanFicStoryDetails> Run(string storyUrl, bool metadataOnly = false, bool force = false)
+    public async Task<FanFicStoryDetails> Run(Uri storyUrl, bool metadataOnly = false, bool force = false)
     {
         var addResult = await fanFicScraperClient.AddStoryAsync(
             new AddStoryAsyncCommand()
             {
-                Url = storyUrl,
+                Url = storyUrl.ToString(),
                 Passphrase = this.dataConfiguration.SecondaryFanFicScraperPassphrase
                              ?? throw new InvalidOperationException("missing secondary instance passphrase"),
                 Force = force
