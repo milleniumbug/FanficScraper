@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
@@ -52,6 +53,19 @@ public class FanFicScraperClient
         return result;
     }
     
+    public async Task<FindStoriesQueryResponse> FindStories(string name)
+    {
+        var url = $"Api/StorySearch?name={HttpUtility.UrlEncode(name)}";
+        
+        using var response = await this.client.GetAsync(url);
+        response.EnsureSuccessStatusCode();
+        var rawResponse = await response.Content.ReadAsStreamAsync();
+        var result = await JsonSerializer.DeserializeAsync<FindStoriesQueryResponse>(
+            rawResponse, jsonOpts) ?? throw new JsonException();
+
+        return result;
+    }
+    
     public async Task<GetStoryAsyncQueryResponse> AwaitAdd(AddStoryAsyncCommandResponse downloadJob)
     {
         GetStoryAsyncQueryResponse queryResult;
@@ -71,14 +85,36 @@ public class FanFicScraperClient
         return await storyResponse.Content.ReadAsStreamAsync();
     }
 
-    public async Task<GetStoryQueryResponse> GetStoryById(string id)
+    public async Task<GetStoryQueryResponse?> GetStoryById(string id)
     {
         using var getResponse = await this.client.GetAsync($"Api/Story/{id}");
+        if (getResponse.StatusCode == HttpStatusCode.NotFound)
+        {
+            return null;
+        }
         getResponse.EnsureSuccessStatusCode();
 
         var getResult = await JsonSerializer.DeserializeAsync<GetStoryQueryResponse>(
             await getResponse.Content.ReadAsStreamAsync(), jsonOpts) ?? throw new JsonException();
 
         return getResult;
+    }
+    
+    public async Task<GetMetadataQueryResponse> GetMetadata(GetMetadataQuery query)
+    {
+        var url = "Api/Metadata";
+        
+        var rawRequest = JsonSerializer.Serialize(query, jsonOpts);
+        using var response = await this.client.PostAsync(url,
+            new StringContent(
+                rawRequest,
+                Encoding.UTF8,
+                "application/json"));
+        response.EnsureSuccessStatusCode();
+        var rawResponse = await response.Content.ReadAsStreamAsync();
+        var result = await JsonSerializer.DeserializeAsync<GetMetadataQueryResponse>(
+            rawResponse, jsonOpts) ?? throw new JsonException();
+
+        return result;
     }
 }

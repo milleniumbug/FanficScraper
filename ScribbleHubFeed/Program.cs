@@ -9,14 +9,15 @@ using ScribbleHubFeed;
 
 var scribbleHubAddress = "https://www.scribblehub.com";
 var passphrase = "<TO FILL>";
-var fanficscraperAddress = new Uri("<TO FILL>");
-var cookieGrabberAddress = new Uri("<TO FILL>");
+var fanficscraperAddress = new Uri("TO FILL");
+var cookieGrabberAddress = new Uri("TO FILL");
 var scrapeCache = new NullCache<string, string>();
 
 var fanficscraper = new FanFicScraperClient(
     new HttpClient()
     {
-        BaseAddress = fanficscraperAddress
+        BaseAddress = fanficscraperAddress,
+        Timeout = Timeout.InfiniteTimeSpan,
     });
 
 var loggerBuilder = LoggerFactory.Create(builder =>
@@ -38,7 +39,8 @@ var challengeSolver = new CachingChallengeSolver(
 using var handler = new ChallengeSolverHandler(challengeSolver);
 var client = new HttpClient(handler)
 {
-    BaseAddress = new Uri(scribbleHubAddress)
+    BaseAddress = new Uri(scribbleHubAddress),
+    Timeout = Timeout.InfiniteTimeSpan,
 };
 
 var scraper = new CachingScraper(
@@ -49,11 +51,14 @@ var scribbleHubFeed = new ScribbleHubFeed.ScribbleHubFeed(scraper);
 
 try
 {
-    var results = scribbleHubFeed.ByTag(
-        ScribbleHubTags.Transgender,
-        SortCriteria.DateAdded,
-        SortOrder.Descending,
-        StoryStatus.Ongoing);
+    var results = scribbleHubFeed.SeriesFinder(
+        new SeriesFinderSettings()
+        {
+            Status = StoryStatus.All,
+            SortDirection = SortOrder.Descending,
+            SortBy = SortCriteria.DateAdded,
+            IncludedTags = new []{ Tags.Parse("Transgender") }
+        });
 
     var jobs = new List<AddStoryAsyncCommandResponse>();
     int x = 0;
@@ -62,13 +67,32 @@ try
         foreach (var story in page)
         {
             Console.WriteLine(story);
-            var downloadJob = await fanficscraper.AddStoryAsync(new AddStoryAsyncCommand()
+            var storyByNameResult = await fanficscraper.FindStories(story.Title);
+            if (storyByNameResult.Results.Any(s => s.Url == story.Uri.ToString()))
             {
-                Force = false,
-                Passphrase = passphrase,
+                Console.WriteLine($"already added {story.Title}");
+                continue;
+            }
+            var metadata = await fanficscraper.GetMetadata(new GetMetadataQuery()
+            {
                 Url = story.Uri.ToString()
             });
-            jobs.Add(downloadJob);
+            var storyResult = await fanficscraper.GetStoryById(metadata.Id);
+            if (storyResult == null)
+            {
+                Console.WriteLine($"new story: {story.Title}");
+                var downloadJob = await fanficscraper.AddStoryAsync(new AddStoryAsyncCommand()
+                {
+                    Force = false,
+                    Passphrase = passphrase,
+                    Url = story.Uri.ToString()
+                });
+                jobs.Add(downloadJob);
+            }
+            else
+            {
+                Console.WriteLine($"already added {story.Title}");
+            }
         }
         Console.WriteLine("end of page");
     }

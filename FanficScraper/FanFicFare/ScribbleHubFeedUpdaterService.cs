@@ -50,6 +50,6 @@ public class ScribbleHubFeedUpdaterService : SimpleTimerHostedService
             }
         }
         
-        return TimeSpan.FromHours(72);
+        return TimeSpan.FromDays(7);
     }
 }

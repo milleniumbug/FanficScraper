@@ -63,7 +63,8 @@ public class FanFicScraper : IFanFicFare
                 this.logger.LogInformation("downloaded story from secondary FanFicScraper instance");
             }
 
-            var getResult = await this.fanFicScraperClient.GetStoryById(id);
+            var getResult = await this.fanFicScraperClient.GetStoryById(id)
+                ?? throw new InvalidDataException();
 
             this.logger.LogInformation("downloaded metadata from secondary FanFicScraper instance");
             
