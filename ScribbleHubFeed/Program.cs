@@ -49,61 +49,81 @@ var scraper = new CachingScraper(
     
 var scribbleHubFeed = new ScribbleHubFeed.ScribbleHubFeed(scraper);
 
-try
-{
-    var results = scribbleHubFeed.SeriesFinder(
-        new SeriesFinderSettings()
-        {
-            Status = StoryStatus.All,
-            SortDirection = SortOrder.Descending,
-            SortBy = SortCriteria.DateAdded,
-            IncludedTags = new []{ Tags.Parse("Transgender") }
-        });
+await MainRun();
 
-    var jobs = new List<AddStoryAsyncCommandResponse>();
-    int x = 0;
-    await foreach (var page in results)
+async Task MainRun()
+{
+    var visitedStories = new HashSet<Uri>();
+    while (true)
     {
-        foreach (var story in page)
+        try
         {
-            Console.WriteLine(story);
-            var storyByNameResult = await fanficscraper.FindStories(story.Title);
-            if (storyByNameResult.Results.Any(s => s.Url == story.Uri.ToString()))
-            {
-                Console.WriteLine($"already added {story.Title}");
-                continue;
-            }
-            var metadata = await fanficscraper.GetMetadata(new GetMetadataQuery()
-            {
-                Url = story.Uri.ToString()
-            });
-            var storyResult = await fanficscraper.GetStoryById(metadata.Id);
-            if (storyResult == null)
-            {
-                Console.WriteLine($"new story: {story.Title}");
-                var downloadJob = await fanficscraper.AddStoryAsync(new AddStoryAsyncCommand()
+            var results = scribbleHubFeed.SeriesFinder(
+                new SeriesFinderSettings()
                 {
-                    Force = false,
-                    Passphrase = passphrase,
-                    Url = story.Uri.ToString()
+                    Status = StoryStatus.All,
+                    SortDirection = SortOrder.Descending,
+                    SortBy = SortCriteria.DateAdded,
+                    IncludedTags = new[] { Tags.Parse("Transgender") }
                 });
-                jobs.Add(downloadJob);
-            }
-            else
-            {
-                Console.WriteLine($"already added {story.Title}");
-            }
-        }
-        Console.WriteLine("end of page");
-    }
 
-    foreach (var job in jobs)
-    {
-        var result = await fanficscraper.AwaitAdd(job);
-        Console.WriteLine($"{result.Url} - {result.Status} {result.StoryId}");
+            var jobs = new List<AddStoryAsyncCommandResponse>();
+            int x = 0;
+            await foreach (var page in results)
+            {
+                foreach (var story in page)
+                {
+                    if (visitedStories.Contains(story.Uri))
+                    {
+                        continue;
+                    }
+                    
+                    Console.WriteLine(story);
+                    var storyByNameResult = await fanficscraper.FindStories(story.Title);
+                    if (storyByNameResult.Results.Any(s => s.Url == story.Uri.ToString()))
+                    {
+                        Console.WriteLine($"already added {story.Title}");
+                        continue;
+                    }
+
+                    var metadata = await fanficscraper.GetMetadata(new GetMetadataQuery()
+                    {
+                        Url = story.Uri.ToString()
+                    });
+                    var storyResult = await fanficscraper.GetStoryById(metadata.Id);
+                    if (storyResult == null)
+                    {
+                        Console.WriteLine($"new story: {story.Title}");
+                        var downloadJob = await fanficscraper.AddStoryAsync(new AddStoryAsyncCommand()
+                        {
+                            Force = false,
+                            Passphrase = passphrase,
+                            Url = story.Uri.ToString()
+                        });
+                        jobs.Add(downloadJob);
+                    }
+                    else
+                    {
+                        Console.WriteLine($"already added {story.Title}");
+                    }
+
+                    visitedStories.Add(story.Uri);
+                }
+
+                Console.WriteLine("end of page");
+            }
+
+            foreach (var job in jobs)
+            {
+                var result = await fanficscraper.AwaitAdd(job);
+                Console.WriteLine($"{result.Url} - {result.Status} {result.StoryId}");
+            }
+
+            return;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
     }
-}
-catch (Exception ex)
-{
-    Console.WriteLine(ex.Message);
 }
