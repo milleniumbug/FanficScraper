@@ -100,17 +100,21 @@ if (dataConfiguration.CookieGrabber.EnableCookieGrabber)
 
 if (dataConfiguration.ScribbleHub.EnableScribbleHubFeed)
 {
-    var client = new HttpClient()
-    {
-        Timeout = TimeSpan.FromMilliseconds(dataConfiguration.ScribbleHub.TimeoutInMilliseconds)
-    };
     builder.Services.AddScoped<CachingScraper>(provider =>
     {
+        var handler = new ChallengeSolverHandler(provider.GetRequiredService<IChallengeSolver>());
+        var client = new HttpClient(handler)
+        {
+            BaseAddress = new Uri(dataConfiguration.ScribbleHub.ScribbleHubAddress),
+            Timeout = Timeout.InfiniteTimeSpan,
+        };
+        
         return new CachingScraper(
             client,
             new NullCache<string, string>());
     });
     builder.Services.AddScoped<ScribbleHubFeed.ScribbleHubFeed>();
+    builder.Services.AddHostedService<ScribbleHubFeedUpdaterService>();
 }
 
 builder.Services.AddScoped<IFanFicFare>(provider =>

@@ -3,8 +3,12 @@ namespace FanficScraper.Configurations;
 public class ScribbleHubFeedConfiguration
 {
     public bool EnableScribbleHubFeed { get; set; } = false;
-    
-    public int TimeoutInMilliseconds { get; set; } = 15000;
 
     public string QueryJson { get; set; }
+    
+    public string FanFicScraperInstanceUrl { get; set; }
+    
+    public string FanFicScraperInstancePassword { get; set; }
+
+    public string ScribbleHubAddress { get; set; } = "https://www.scribblehub.com";
 }

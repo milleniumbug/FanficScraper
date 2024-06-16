@@ -1,4 +1,6 @@
 using System.Text.Json;
+using Common;
+using Common.Api;
 using FanficScraper.Configurations;
 using FanficScraper.Services;
 using Microsoft.Extensions.Options;
@@ -9,6 +11,7 @@ namespace FanficScraper.FanFicFare;
 public class ScribbleHubFeedUpdaterService : SimpleTimerHostedService
 {
     private readonly ILogger<ScribbleHubFeedUpdaterService> logger;
+    private const int AlreadyAddedStoriesMaxCount = 5;
 
     public ScribbleHubFeedUpdaterService(
         ILogger<ScribbleHubFeedUpdaterService> logger,
@@ -19,37 +22,116 @@ public class ScribbleHubFeedUpdaterService : SimpleTimerHostedService
 
     protected override async Task<TimeSpan?> DoWork(IServiceProvider serviceProvider)
     {
-        var fanFicUpdater = serviceProvider.GetRequiredService<FanFicUpdater>();
-        var storyBrowser = serviceProvider.GetRequiredService<StoryBrowser>();
         var scribbleHubFeed = serviceProvider.GetRequiredService<ScribbleHubFeed.ScribbleHubFeed>();
         var configuration = serviceProvider.GetRequiredService<IOptions<DataConfiguration>>().Value;
 
-        var seriesFinderSettings = JsonSerializer.Deserialize<SeriesFinderSettings>(configuration.ScribbleHub.QueryJson)
+        var seriesFinderSettings = JsonSerializer.Deserialize<List<SeriesFinderSettings>>(configuration.ScribbleHub.QueryJson)
             ?? throw new JsonException();
-        
-        logger.LogInformation("Attempting to find more series on ScribbleHub");
 
-        var feedPages = scribbleHubFeed.SeriesFinder(seriesFinderSettings);
+        await MainRun(scribbleHubFeed, configuration.ScribbleHub, seriesFinderSettings);
         
-        int page = 1;
-        await foreach (var feedPage in feedPages)
+        return TimeSpan.FromHours(6);
+    }
+    
+    private async Task MainRun(
+        ScribbleHubFeed.ScribbleHubFeed scribbleHubFeed,
+        ScribbleHubFeedConfiguration configuration,
+        IReadOnlyList<SeriesFinderSettings> seriesFinderSettings)
+    {
+        using var httpClient = new HttpClient();
+        httpClient.BaseAddress = new Uri(configuration.FanFicScraperInstanceUrl);
+        httpClient.Timeout = Timeout.InfiniteTimeSpan;
+        
+        var fanficscraper = new FanFicScraperClient(
+            httpClient);
+        
+        var visitedStories = new HashSet<Uri>();
+        foreach (var seriesFinderSetting in seriesFinderSettings)
         {
-            logger.LogInformation("Starting scanning page number {PageNumber}", page);
-            foreach (var story in feedPage)
+            await ScrapeFeed(scribbleHubFeed, configuration, seriesFinderSetting, visitedStories, fanficscraper);
+        }
+    }
+
+    private async Task ScrapeFeed(
+        ScribbleHubFeed.ScribbleHubFeed scribbleHubFeed,
+        ScribbleHubFeedConfiguration configuration,
+        SeriesFinderSettings seriesFinderSetting,
+        ISet<Uri> visitedStories,
+        FanFicScraperClient fanficscraper)
+    {
+        while (true)
+        {
+            try
             {
-                var result = await storyBrowser.FindByUrl(story.Uri);
-                if (result == null)
+                var results = scribbleHubFeed.SeriesFinder(
+                    seriesFinderSetting);
+
+                var jobs = new List<AddStoryAsyncCommandResponse>();
+                int alreadyAddedStoriesCount = 0;
+                await foreach (var page in results)
                 {
-                    logger.LogInformation("Found new story '{StoryName}' under URL {StoryUrl}, attempting to grab it", story.Title, story.Uri);
-                    await fanFicUpdater.UpdateStory(story.Uri, force: false);
+                    foreach (var story in page)
+                    {
+                        if (visitedStories.Contains(story.Uri))
+                        {
+                            continue;
+                        }
+
+                        logger.LogInformation("Handling the story under url '{Url}' and title '{Title}'", story.Uri,
+                            story.Title);
+                        var storyByNameResult = await fanficscraper.FindStories(story.Title);
+                        if (storyByNameResult.Results.Any(s => s.Url == story.Uri.ToString()))
+                        {
+                            logger.LogInformation("Already added {Title}", story.Title);
+                            alreadyAddedStoriesCount++;
+                            continue;
+                        }
+
+                        var metadata = await fanficscraper.GetMetadata(new GetMetadataQuery()
+                        {
+                            Url = story.Uri.ToString()
+                        });
+                        var storyResult = await fanficscraper.GetStoryById(metadata.Id);
+                        if (storyResult == null)
+                        {
+                            logger.LogInformation("New story added {Title}", story.Title);
+                            var downloadJob = await fanficscraper.AddStoryAsync(new AddStoryAsyncCommand()
+                            {
+                                Force = false,
+                                Passphrase = configuration.FanFicScraperInstancePassword,
+                                Url = story.Uri.ToString()
+                            });
+                            jobs.Add(downloadJob);
+                            alreadyAddedStoriesCount = 0;
+                        }
+                        else
+                        {
+                            logger.LogInformation("Already added {Title}", story.Title);
+                            alreadyAddedStoriesCount++;
+                        }
+
+                        visitedStories.Add(story.Uri);
+                    }
+
+                    logger.LogInformation("End of page");
+                    if (alreadyAddedStoriesCount > AlreadyAddedStoriesMaxCount)
+                    {
+                        break;
+                    }
                 }
-                else
+
+                foreach (var job in jobs)
                 {
-                    logger.LogInformation("Story '{StoryName}' is already added", story.Title);
+                    var result = await fanficscraper.AwaitAdd(job);
+                    logger.LogInformation("{Url} - {Status} {StoryId}", result.Url, result.Status, result.StoryId);
                 }
+
+                return;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error encountered");
             }
         }
-        
-        return TimeSpan.FromDays(7);
     }
 }
