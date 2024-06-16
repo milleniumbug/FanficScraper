@@ -1,8 +1,6 @@
 ﻿@using System.Web
 @model FanficScraper.Data.Story
 
-<p><a href="/StoryDetails/@Model.FileName">@Model.StoryName</a></p>
+<p><a href="/StoryDetails/@Model.FileName">@Model.StoryName</a> by <a href="/StoriesByAuthor/@Model.AuthorName">@Model.AuthorName</a>. @(Model.IsComplete ? "Complete" : "Incomplete") Updated: @Model.StoryUpdated.ToString("yyyy-MM-dd").</p>
 
-<p><strong><a class="download-link" href="/Story/@Model.FileName">Download</a></strong></p>
-
-<p>by <a href="/StoriesByAuthor/@Model.AuthorName">@Model.AuthorName</a>. @(Model.IsComplete ? "Complete" : "Incomplete") Updated: @Model.StoryUpdated.ToString("yyyy-MM-dd").</p>
+<p><a class="download-link" href="/Story/@Model.FileName">Download</a></p>

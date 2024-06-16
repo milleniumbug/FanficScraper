@@ -19,6 +19,7 @@ public class Sandbox
         this.testOutputHelper = testOutputHelper;
     }
 
+    [Fact]
     public void Json()
     {
         var s = new SeriesFinderSettings()

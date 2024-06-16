@@ -68,7 +68,7 @@ async Task MainRun()
                 });
 
             var jobs = new List<AddStoryAsyncCommandResponse>();
-            int x = 0;
+            int alreadyAddedStoriesCount = 0;
             await foreach (var page in results)
             {
                 foreach (var story in page)
@@ -83,6 +83,7 @@ async Task MainRun()
                     if (storyByNameResult.Results.Any(s => s.Url == story.Uri.ToString()))
                     {
                         Console.WriteLine($"already added {story.Title}");
+                        alreadyAddedStoriesCount++;
                         continue;
                     }
 
@@ -101,16 +102,22 @@ async Task MainRun()
                             Url = story.Uri.ToString()
                         });
                         jobs.Add(downloadJob);
+                        alreadyAddedStoriesCount = 0;
                     }
                     else
                     {
                         Console.WriteLine($"already added {story.Title}");
+                        alreadyAddedStoriesCount++;
                     }
 
                     visitedStories.Add(story.Uri);
                 }
 
                 Console.WriteLine("end of page");
+                if (alreadyAddedStoriesCount > alreadyAddedStoriesMaxCount)
+                {
+                    break;
+                }
             }
 
             foreach (var job in jobs)
