@@ -74,7 +74,7 @@ public class FanFicFare : IFanFicFare
                 {
                     cookiesFilePath = Path.GetTempFileName();
                     await using var cookiesFs = File.Create(cookiesFilePath);
-                    MozillaCookieUtils.WriteCookiesInMozillaFormat(cookiesFs, solved.Cookies);
+                    CookieUtils.WriteCookiesInMozillaFormat(cookiesFs, solved.Cookies);
                     psi.ArgumentList.Add($"--mozilla-cookies={cookiesFilePath}");
                 }
             }

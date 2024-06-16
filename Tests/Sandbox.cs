@@ -65,7 +65,7 @@ public class Sandbox
     private void PrintOutCookies(ChallengeSolution solution)
     {
         using var memory = new MemoryStream();
-        MozillaCookieUtils.WriteCookiesInMozillaFormat(memory, solution.Cookies);
+        CookieUtils.WriteCookiesInMozillaFormat(memory, solution.Cookies);
 
         var s = Encoding.UTF8.GetString(memory.ToArray());
         testOutputHelper.WriteLine(s);

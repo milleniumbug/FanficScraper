@@ -1,3 +1,4 @@
+using Common;
 using Common.Models;
 using FanficScraper.Utils;
 using Microsoft.AspNetCore.Mvc;
@@ -26,7 +27,8 @@ public class CloudflareClearanceController : ControllerBase
         return new CloudflareClearanceResult()
         {
             UserAgent = userAgentGrabber.UserAgent,
-            Cookies = cookies.ToList()
+            Cookies = cookies,
+            CookiesMozillaFormat = CookieUtils.StringFromCookies(cookies)
         };
     }
 

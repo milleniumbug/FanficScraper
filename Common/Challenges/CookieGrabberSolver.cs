@@ -39,16 +39,7 @@ public class CookieGrabberSolver : IChallengeSolver
             UserAgent: result.UserAgent,
             Cookies: new ToStringableReadOnlyList<Cookie>(
                 result.Cookies
-                    .Select(cookie => new Cookie()
-                    {
-                        Name = cookie.Name,
-                        Value = cookie.Value,
-                        Expires = DateTimeOffset.FromUnixTimeSeconds((long)cookie.Expires).UtcDateTime,
-                        HttpOnly = cookie.HttpOnly,
-                        Secure = cookie.Secure,
-                        Domain = cookie.Domain,
-                        Path = cookie.Path,
-                    })
+                    .Select(CookieUtils.CookieDtoToSystemNetCookie)
                     .ToList()),
             ExpiryTime: expiryTime,
             Origin: new Uri(uri.GetOrigin()));
