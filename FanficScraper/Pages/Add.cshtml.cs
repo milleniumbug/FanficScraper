@@ -54,10 +54,13 @@ public class AddModel : PageModel
                 });
             case AuthorizationResult.Success:
             {
-                var id = await fanFicUpdater.ScheduleUpdateStory(url, force: true);
+                var urls = url.Split(
+                    new string[] { "\r\n", "\r", "\n" },
+                    StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                var urlsToIdsMapping = await fanFicUpdater.ScheduleUpdateStories(urls, force: true);
                 return RedirectToPage("/DownloadJob", new
                 {
-                    id = id
+                    id = string.Join(",", urlsToIdsMapping.Select(kvp => kvp.Value))
                 });
             }
         }

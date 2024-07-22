@@ -17,13 +17,19 @@ public class DownloadJobModel : PageModel
     }
 
     public async Task OnGetAsync(
-        [FromRoute] Guid id)
+        [FromRoute] string id)
     {
-        this.JobId = id;
-        this.Job = await this.updater.GetScheduledJobDetails(id);
+        var ids = id.Split(",")
+            .Select(i => Guid.TryParse(i, out var guid) ? guid : (Guid?)null)
+            .Where(guid => guid.HasValue)
+            .Select(guid => guid!.Value)
+            .ToList();
+        var (jobs, status) = await this.updater.GetScheduledJobsDetails(ids);
+        this.Jobs = jobs;
+        this.AggregateStatus = status;
     }
 
-    public JobDetails? Job { get; set; }
+    public IReadOnlyCollection<JobDetails> Jobs { get; set; } = Array.Empty<JobDetails>();
     
-    public Guid JobId { get; set; }
+    public AggregateDownloadJobStatus AggregateStatus { get; set; }
 }

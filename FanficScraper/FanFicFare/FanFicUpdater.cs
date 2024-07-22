@@ -92,10 +92,52 @@ public class FanFicUpdater
         return await this.storyContext.DownloadJobs
             .Where(downloadJob => downloadJob.Id == id)
             .Select(downloadJob => new JobDetails(
+                downloadJob.Id,
                 downloadJob.Status,
                 downloadJob.Url,
                 downloadJob.FileName))
             .FirstOrDefaultAsync();
+    }
+    
+    public async Task<(IReadOnlyCollection<JobDetails> details, AggregateDownloadJobStatus aggregateStatus)> GetScheduledJobsDetails(IEnumerable<Guid> ids)
+    {
+        var details = await this.storyContext.DownloadJobs
+            .Where(downloadJob => ids.Contains(downloadJob.Id))
+            .Select(downloadJob => new JobDetails(
+                downloadJob.Id,
+                downloadJob.Status,
+                downloadJob.Url,
+                downloadJob.FileName))
+            .ToListAsync();
+
+        AggregateDownloadJobStatus aggregateStatus = AggregateDownloadJobStatus.NotYetStarted;
+
+        if (details.Any(job => job.Status is DownloadJobStatus.NotYetStarted or DownloadJobStatus.Started))
+        {
+            aggregateStatus =
+                details.Any(job => job.Status == DownloadJobStatus.Failed)
+                    ? AggregateDownloadJobStatus.InProgressWithErrors
+                    : AggregateDownloadJobStatus.InProgress;
+        }
+        else
+        {
+            aggregateStatus =
+                details.Any(job => job.Status == DownloadJobStatus.Failed)
+                    ? AggregateDownloadJobStatus.FinishedWithErrors
+                    : AggregateDownloadJobStatus.FinishedSuccessfully;
+        }
+
+        if (details.All(job => job.Status == DownloadJobStatus.Failed))
+        {
+            aggregateStatus = AggregateDownloadJobStatus.Failed;
+        }
+        
+        if (details.All(job => job.Status == DownloadJobStatus.NotYetStarted))
+        {
+            aggregateStatus = AggregateDownloadJobStatus.NotYetStarted;
+        }
+
+        return (details, aggregateStatus);
     }
     
     public async Task<FanFicStoryDetails?> UpdateNextScheduled(Guid runnerId)
@@ -173,23 +215,35 @@ public class FanFicUpdater
 
     public async Task<Guid> ScheduleUpdateStory(string url, bool force)
     {
-        var downloadJob = new DownloadJob()
+        var dict = await ScheduleUpdateStories(new[] { url }, force);
+        return dict.Single().Value;
+    }
+    
+    public async Task<IReadOnlyList<KeyValuePair<string, Guid>>> ScheduleUpdateStories(IEnumerable<string> urls, bool force)
+    {
+        var dict = new List<KeyValuePair<string, Guid>>();
+        foreach (var url in urls)
         {
-            Id = Guid.NewGuid(),
-            Status = DownloadJobStatus.NotYetStarted,
-            Url = url,
-            Force = force,
-            AddedDate = DateTime.UtcNow,
-            FileName = null,
-            FinishDate = null,
-            RunnerId = null
-        };
+            var downloadJob = new DownloadJob()
+            {
+                Id = Guid.NewGuid(),
+                Status = DownloadJobStatus.NotYetStarted,
+                Url = url,
+                Force = force,
+                AddedDate = DateTime.UtcNow,
+                FileName = null,
+                FinishDate = null,
+                RunnerId = null
+            };
 
-        this.storyContext.Add(downloadJob);
+            this.storyContext.Add(downloadJob);
+            dict.Add(new KeyValuePair<string, Guid>(url, downloadJob.Id));
+        }
+        
 
         await this.storyContext.SaveChangesAsync();
 
-        return downloadJob.Id;
+        return dict;
     }
 
     private void UpdateStoryEntity(

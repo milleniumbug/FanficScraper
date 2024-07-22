@@ -7,3 +7,13 @@ public enum DownloadJobStatus
     Succeeded,
     Started
 }
+
+public enum AggregateDownloadJobStatus
+{
+    NotYetStarted,
+    InProgress,
+    InProgressWithErrors,
+    FinishedSuccessfully,
+    FinishedWithErrors,
+    Failed
+}

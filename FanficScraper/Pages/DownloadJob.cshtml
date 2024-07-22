@@ -1,83 +1,115 @@
 ﻿@page "{id}"
+@using System.Text.Json
+@using System.Web
 @using FanficScraper.Data
 @model DownloadJobModel
 @{
-    @switch (Model.Job?.Status)
+    @switch (Model.AggregateStatus)
     {
-        case DownloadJobStatus.NotYetStarted:
+        case AggregateDownloadJobStatus.NotYetStarted:
             ViewData["Title"] = "Queued";
             break;
-        case DownloadJobStatus.Failed:
-            ViewData["Title"] = "Fail";
+        case AggregateDownloadJobStatus.FinishedWithErrors:
+        case AggregateDownloadJobStatus.FinishedSuccessfully:
+            ViewData["Title"] = "Finished";
             break;
-        case DownloadJobStatus.Succeeded:
-            ViewData["Title"] = "Success";
+        case AggregateDownloadJobStatus.Failed:
+            ViewData["Title"] = "Failed";
             break;
-        case DownloadJobStatus.Started:
+        case AggregateDownloadJobStatus.InProgressWithErrors:
+        case AggregateDownloadJobStatus.InProgress:
             ViewData["Title"] = "Downloading";
-            break;
-        case null:
-            ViewData["Title"] = "Not found";
             break;
         default:
             throw new ArgumentOutOfRangeException();
     }
 }
 
-@if (Model.Job != null)
-{
-    <div>
-        @switch (Model.Job.Status)
+<div>
+    @switch (Model.AggregateStatus)
+    {
+        case AggregateDownloadJobStatus.NotYetStarted:
+            <h1>Queued</h1>
+            break;
+        case AggregateDownloadJobStatus.Failed:
+            <h1>Failed</h1>
+            break;
+        case AggregateDownloadJobStatus.FinishedSuccessfully:
+            <h1>SUCCESS!</h1>
+            break;
+        case AggregateDownloadJobStatus.FinishedWithErrors:
+            <h1>Finished, some downloads failed</h1>
+            break;
+        case AggregateDownloadJobStatus.InProgress:
+            <h1>Downloading</h1>
+            break;
+        case AggregateDownloadJobStatus.InProgressWithErrors:
+            <h1>Downloading, some errors occured</h1>
+            break;
+        default:
+            throw new ArgumentOutOfRangeException();
+    }
+    
+    @foreach (var (job, number) in Model.Jobs.Select((details, index) => (details, index+1)))
+    {
+        var statusText = job.Status switch
         {
-            case DownloadJobStatus.NotYetStarted:
-                <h1>Queued</h1>
-                break;
-            case DownloadJobStatus.Failed:
-                <h1>Failed</h1>
-                break;
-            case DownloadJobStatus.Succeeded:
-                <h1>SUCCESS!</h1>
-                break;
-            case DownloadJobStatus.Started:
-                <h1>Downloading</h1>
-                break;
-            default:
-                throw new ArgumentOutOfRangeException();
-        }
-        
-        @if (Model.Job.Status == DownloadJobStatus.Failed)
-        {
-            <i>Try again later.</i>
-            <br/>
-        }
-        
-        <a href="@Model.Job.Url">Requested story</a>
-        
-        @if (Model.Job.StoryId != null)
-        {
-            <br/><br/>
-            <b><a href="/StoryDetails/@Model.Job.StoryId">Done! Go here</a></b>
-        }
-        else
-        {
-            <script>
-                const current =
-                    @((int)Model.Job.Status)
+            DownloadJobStatus.NotYetStarted => "Queued",
+            DownloadJobStatus.Started => "In progress",
+            DownloadJobStatus.Succeeded => "SUCCESS!",
+            DownloadJobStatus.Failed => "Failed. Try again later.",
+            _ => throw new ArgumentOutOfRangeException()
+        };
+        <p><a href="@job.Url">Requested Story #@(number)</a><br/>Status: @statusText</p>
+    }
+
+    @if (Model.AggregateStatus is AggregateDownloadJobStatus.FinishedSuccessfully or AggregateDownloadJobStatus.FinishedWithErrors)
+    {
+        // do nothing
+    }
+    else
+    {
+        var unfinishedJobs = Model.Jobs
+            .Where(job => job.Status is DownloadJobStatus.Started or DownloadJobStatus.NotYetStarted)
+            .ToList();
+        <script>
+            const rawJson =
+                @Html.Raw(
+                    HttpUtility.JavaScriptStringEncode(
+                        JsonSerializer.Serialize(
+                            new
+                            {
+                                AggregateStatus = Model.AggregateStatus,
+                                Jobs = unfinishedJobs.Select(job =>
+                                    new
+                                    {
+                                        job.JobId,
+                                        job.Status,
+                                        NeedsRefresh = job.Status is DownloadJobStatus.NotYetStarted or DownloadJobStatus.Started,
+                                    }),
+                                NeedsRefresh = unfinishedJobs.Count > 0,
+                            },
+                            new JsonSerializerOptions()
+                            {
+                                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                            }),
+                        addDoubleQuotes: true))
                 ;
+                
+            const json = JSON.parse(rawJson);
+            if (json.needsRefresh) {
                 setInterval(async () => {
-                    const response = await fetch("/Api/StoryAsync/@Model.JobId");
-                    const result = await response.json();
-                    if (result.status !== current) {
-                        window.location.reload();
+                    for (const job of json.jobs) {
+                        if (job.needsRefresh) {
+                            const response = await fetch(`/Api/StoryAsync/${job.jobId}`);
+                            const result = await response.json();
+                            if (result.status !== job.status) {
+                                window.location.reload();
+                            }
+                        }
                     }
                 }, 5000);
-            </script>
-        }
-    </div>
-}
-else
-{
-    <div>
-        <h1>Not Found</h1>
-    </div>
-}
+            }
+        </script>
+    }
+</div>

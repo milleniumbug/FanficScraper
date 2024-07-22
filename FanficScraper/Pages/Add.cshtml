@@ -6,13 +6,13 @@
 
 <div>
     <form method="post" asp-page="/Add">
-        <div class="form-floating">
-            <input id="story-url" name="url" class="form-control" aria-required="true"/>
-            <label for="story-url" class="form-label">Story URL</label>
+        <div class="mb-3">
+            <label for="story-url" class="form-label">Story URL (one per row)</label>
+            <textarea id="story-url" name="url" class="form-control" aria-required="true" rows="5"></textarea>
         </div>
-        <div class="form-floating">
+        <div class="mb-3">
+            <label for="passphrase" class="form-label">Secret passphrase</label>
             <input id="passphrase" name="passphrase" class="form-control" aria-required="true"/>
-            <label for="passphrase" class="form-label">Secret passhprase</label>
         </div>
         <div>
             <button type="submit" class="w-100 btn btn-lg btn-primary">Update</button>
