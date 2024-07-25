@@ -4,64 +4,7 @@ using Geralt;
 
 namespace Common.Crypto;
 
-public abstract class ReadableStreamBase : Stream
-{
-    public override long Seek(long offset, SeekOrigin origin)
-    {
-        throw new NotSupportedException();
-    }
-
-    public override void SetLength(long value)
-    {
-        throw new NotSupportedException();
-    }
-
-    public override void Write(byte[] buffer, int offset, int count)
-    {
-        throw new NotSupportedException();
-    }
-
-    public override void Flush()
-    {
-        // do nothing
-    }
-
-    public override int Read(byte[] buffer, int offset, int count)
-    {
-        return this.Read(buffer.AsSpan(offset, count));
-    }
-
-    public abstract override int Read(Span<byte> buffer);
-
-    public override bool CanRead => true;
-    public override bool CanSeek => false;
-    public override bool CanWrite => false;
-    public override long Length => throw new NotSupportedException();
-
-    public override long Position
-    {
-        get => throw new NotSupportedException();
-        set => throw new NotSupportedException();
-    }
-    
-    protected static int TryReadFully(Stream stream, Span<byte> buffer)
-    {
-        int numBytesToRead = buffer.Length;
-        int numBytesRead = 0;
-        do
-        {
-            int n = stream.Read(buffer.Slice(numBytesRead, numBytesToRead));
-            if (n == 0)
-                return numBytesRead;
-            numBytesRead += n;
-            numBytesToRead -= n;
-        } while (numBytesToRead > 0);
-
-        return numBytesRead;
-    }
-}
-
-public class CryptoReadStream : ReadableStreamBase
+public abstract class CryptoReadStreamBase<THeader> : ReadableStreamBase
 {
     private readonly Stream stream;
     private string? passphrase;
@@ -71,9 +14,11 @@ public class CryptoReadStream : ReadableStreamBase
     private byte[] ciphertextBuffer = new byte[bufferSize + IncrementalXChaCha20Poly1305.TagSize];
     private byte[] plaintextBuffer = new byte[bufferSize];
     private Memory<byte> readArea = Memory<byte>.Empty;
-    private FileInfo? fileInfo;
+    private THeader? header;
 
-    public CryptoReadStream(Stream stream, string passphrase, bool leaveOpen = false)
+    protected abstract (ReadOnlyMemory<byte> key, ReadOnlyMemory<byte> nonce) DeriveKey(string passphrase, THeader header);
+
+    public CryptoReadStreamBase(Stream stream, string passphrase, bool leaveOpen = false)
     {
         this.stream = stream;
         this.passphrase = passphrase;
@@ -151,10 +96,10 @@ public class CryptoReadStream : ReadableStreamBase
         return true;
     }
 
-    [MemberNotNull(nameof(fileInfo))]
+    [MemberNotNull(nameof(header))]
     private void ReadHeader()
     {
-        if (fileInfo == null)
+        if (header == null)
         {
             var headerSizeSpan = this.plaintextBuffer.AsSpan(0, sizeof(int));
             this.stream.ReadExactly(headerSizeSpan);
@@ -168,13 +113,13 @@ public class CryptoReadStream : ReadableStreamBase
             var headerBytes = this.plaintextBuffer.AsSpan(0, headerSize);
             this.stream.ReadExactly(headerBytes);
 
-            fileInfo = JsonSerializer.Deserialize<FileInfo>(headerBytes)
+            header = JsonSerializer.Deserialize<THeader>(headerBytes)
                        ?? throw new InvalidDataException("can't be null");
 
-            var key = Crypto.DeriveKey(this.passphrase!, fileInfo.DataInfo.KeyInfo);
+            var (key, nonce) = DeriveKey(passphrase!, header);
             this.cipher = new IncrementalXChaCha20Poly1305(
                 decryption: true,
-                fileInfo.DataInfo.Nonce.ToArray(),
+                nonce.ToArray(),
                 key.Span);
             this.passphrase = null;
         }

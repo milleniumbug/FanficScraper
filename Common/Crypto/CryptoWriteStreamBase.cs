@@ -4,50 +4,7 @@ using Geralt;
 
 namespace Common.Crypto;
 
-public abstract class WritableStreamBase : Stream
-{
-    public override int Read(byte[] buffer, int offset, int count)
-    {
-        throw new NotSupportedException();
-    }
-
-    public override long Seek(long offset, SeekOrigin origin)
-    {
-        throw new NotSupportedException();
-    }
-
-    public override void SetLength(long value)
-    {
-        throw new NotSupportedException();
-    }
-
-    public override void Write(byte[] buffer, int offset, int count)
-    {
-        var input = buffer.AsSpan(offset, count);
-        this.Write(buffer);
-    }
-
-    public abstract override void Write(ReadOnlySpan<byte> buffer);
-
-    public override void WriteByte(byte value)
-    {
-        ReadOnlySpan<byte> span = stackalloc byte[1] { value };
-        this.Write(span);
-    }
-
-    public override bool CanRead => false;
-    public override bool CanSeek => false;
-    public override bool CanWrite => true;
-    public override long Length => throw new NotSupportedException();
-
-    public override long Position
-    {
-        get => throw new NotSupportedException();
-        set => throw new NotSupportedException();
-    }
-}
-
-public class CryptoWriteStream : WritableStreamBase
+public abstract class CryptoWriteStreamBase<THeader> : WritableStreamBase
 {
     private readonly Stream stream;
     private readonly bool leaveOpen;
@@ -57,7 +14,11 @@ public class CryptoWriteStream : WritableStreamBase
     private byte[] ciphertextBuffer = new byte[bufferSize + IncrementalXChaCha20Poly1305.TagSize];
     private byte[] plaintextBuffer = new byte[bufferSize];
     private Memory<byte> writeArea;
-    private FileInfo fileInfo;
+    private THeader header;
+    
+    protected abstract ReadOnlyMemory<byte> DeriveKey(string passphrase);
+
+    protected abstract THeader StoreNonce(ReadOnlyMemory<byte> nonce);
 
     protected override void Dispose(bool disposing)
     {
@@ -89,7 +50,7 @@ public class CryptoWriteStream : WritableStreamBase
     {
         if (!headerWritten)
         {
-            var bytes = JsonSerializer.SerializeToUtf8Bytes(fileInfo);
+            var bytes = JsonSerializer.SerializeToUtf8Bytes(header);
             var size = BitConverter.GetBytes(bytes.Length);
             stream.Write(size);
             stream.Write(bytes);
@@ -126,20 +87,20 @@ public class CryptoWriteStream : WritableStreamBase
         }
     }
 
-    public CryptoWriteStream(Stream stream, string password, bool leaveOpen = false)
+    public CryptoWriteStreamBase(Stream stream, string password, bool leaveOpen = false)
     {
         this.stream = stream;
         this.leaveOpen = leaveOpen;
-        var (key, keyInfo) = Crypto.DeriveKey(password);
-        var nonceBytes = new byte[IncrementalXChaCha20Poly1305.HeaderSize];
-        SecureRandom.Fill(nonceBytes);
 
+        var key = DeriveKey(password);
+
+        var nonce = new byte[IncrementalXChaCha20Poly1305.HeaderSize];
         this.cipher = new IncrementalXChaCha20Poly1305(
             decryption: false,
-            nonceBytes,
+            nonce,
             key.Span);
 
-        this.fileInfo = new FileInfo(new DataInfo(nonceBytes, keyInfo));
+        this.header = StoreNonce(nonce);
         this.writeArea = this.plaintextBuffer.AsMemory(0, bufferSize);
     }
 }
