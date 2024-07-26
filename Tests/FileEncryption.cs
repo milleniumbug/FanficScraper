@@ -82,4 +82,34 @@ public class FileEncryption
             cryptoStream.ReadExactly(actualData);
         });
     }
+    
+    [Theory]
+    [InlineData(1)]
+    [InlineData(2)]
+    [InlineData(3)]
+    public void Truncation(int bytesToCutOff)
+    {
+        var actualData = new byte[64 * 1024];
+        var expectedData = new byte[64 * 1024];
+        SecureRandom.Fill(expectedData);
+        var password = "this is a common password";
+
+        byte[] encryptedData;
+        using (var memoryStream = new MemoryStream())
+        {
+            using (var cryptoStream = new CryptoWriteStream(memoryStream, password, leaveOpen: true))
+            {
+                cryptoStream.Write(expectedData);
+            }
+
+            encryptedData = memoryStream.ToArray();
+        }
+        
+        Assert.Throws<CryptographicException>(() =>
+        {
+            using var memoryStream = new MemoryStream(encryptedData.AsSpan(..^bytesToCutOff).ToArray());
+            using var cryptoStream = new CryptoReadStream(memoryStream, password, leaveOpen: true);
+            cryptoStream.ReadExactly(actualData);
+        });
+    }
 }
