@@ -60,7 +60,17 @@
             DownloadJobStatus.Failed => "Failed. Try again later.",
             _ => throw new ArgumentOutOfRangeException()
         };
-        <p><a href="@job.Url">Requested Story #@(number)</a><br/>Status: @statusText</p>
+        <p>
+            <a href="@job.Url">Requested Story #@(number)</a><br/>Status:
+            @if (job.Status == DownloadJobStatus.Succeeded)
+            {
+                <a href="/StoryDetails/@job.StoryId">@statusText</a>
+            }
+            else
+            {
+                @statusText
+            }
+        </p>
     }
 
     @if (Model.AggregateStatus is AggregateDownloadJobStatus.FinishedSuccessfully or AggregateDownloadJobStatus.FinishedWithErrors)
