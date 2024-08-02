@@ -1,10 +1,10 @@
+using System.Net;
 using System.Text;
 using Common;
 using Common.Challenges;
-using FanficScraper.Configurations;
-using FanficScraper.FanFicFare;
+using Meziantou.Extensions.Logging.Xunit;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using Newtonsoft.Json;
 using ScribbleHubFeed;
 using Xunit.Abstractions;
 
@@ -60,6 +60,27 @@ public class Sandbox
         ;
         PrintOutCookies(v2);
         PrintOutCookies(v4);
+    }
+    
+    [Fact]
+    public async Task GoToScribbleHub()
+    {
+        var cacheSolver = new FilteringChallengeSolver(
+            FilteringChallengeSolver.InclusionType.SolveNoChallengeExceptOnTheList,
+            "https://www.fanfiction.net/;https://fanfiction.net/;https://www.scribblehub.com/;https://scribblehub.com/".Split(";"),
+            new CookieGrabberSolver(
+                new HttpClient()
+                {
+                    BaseAddress = new Uri("http://localhost:12000"),
+                    Timeout = TimeSpan.FromMinutes(2),
+                },
+                XUnitLogger.CreateLogger<CookieGrabberSolver>(this.testOutputHelper)));
+
+        var httpClient = new HttpClient(new ChallengeSolverHandler(cacheSolver));
+
+        var response = await httpClient.GetAsync("https://www.scribblehub.com/series-finder/?sf=1&tgi=1088&order=desc&sort=dateadded&pg=1");
+        Assert.NotEqual(HttpStatusCode.Forbidden, response.StatusCode);
+        Assert.NotEqual(HttpStatusCode.InternalServerError, response.StatusCode);
     }
 
     private void PrintOutCookies(ChallengeSolution solution)

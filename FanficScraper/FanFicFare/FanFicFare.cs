@@ -147,11 +147,14 @@ public class FanFicFare : IFanFicFare
                 {
                     await stdoutReadTask;
                     var stderr = await stderrReadTask;
-                    if (stderr.Contains("403 Client Error: Forbidden for url", StringComparison.Ordinal) &&
-                        settings.ChallengeSolver != null &&
-                        solved != null)
+                    if (stderr.Contains("403 Client Error: Forbidden for url", StringComparison.Ordinal))
                     {
-                        settings.ChallengeSolver.Invalidate(solved);
+                        if (settings.ChallengeSolver != null && solved != null)
+                        {
+                            settings.ChallengeSolver.Invalidate(solved);
+                        }
+                        
+                        await Task.Delay(TimeSpan.FromSeconds(10));
                     }
                     throw new FanficFareException(stderr);
                 }
