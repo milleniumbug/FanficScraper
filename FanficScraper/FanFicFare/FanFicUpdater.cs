@@ -147,6 +147,7 @@ public class FanFicUpdater
     
     public async Task<FanFicStoryDetails?> UpdateNextScheduled(Guid runnerId)
     {
+        using var storyLock = await this.storyUpdateLock.TakeStoryUpdateLock();
         var downloadJob = await this.storyContext.DownloadJobs
             .OrderBy(downloadJob => downloadJob.Status)
             .ThenBy(downloadJob => downloadJob.AddedDate)
