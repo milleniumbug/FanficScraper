@@ -93,6 +93,7 @@ public class BackupService
             await WriteConfiguration(tarArchive, request);
             await WriteStoriesDirectory(tarArchive, request);
             await WriteDatabase(tarArchive, request);
+            await WriteAdditionalFiles(tarArchive, request);
         }
         
         await encryptionTask;
@@ -121,6 +122,27 @@ public class BackupService
         };
         
         await tarArchive.WriteEntryAsync(tarEntry);
+    }
+    
+    private async Task WriteAdditionalFiles(TarWriter tarArchive, BackupRequest request)
+    {
+        var rootDirectoryEntry = new GnuTarEntry(TarEntryType.Directory, "additionalFiles");
+        await tarArchive.WriteEntryAsync(rootDirectoryEntry);
+        
+        if (!request.IncludePrivateData)
+        {
+            return;
+        }
+
+        foreach (var filePath in backupConfiguration.AdditionalFiles)
+        {
+            if (!Path.IsPathFullyQualified(filePath))
+            {
+                continue;
+            }
+
+            await tarArchive.WriteEntryAsync(FollowSymlink(new FileInfo(filePath)).FullName, rootDirectoryEntry.Name + "/" + Path.GetRelativePath(Path.GetPathRoot(filePath)!, filePath));
+        }
     }
 
     private async Task WriteDatabase(TarWriter tarArchive, BackupRequest request)
@@ -168,5 +190,12 @@ public class BackupService
             var entryName = Path.GetRelativePath(directory, fileSystemInfo.FullName);
             await tarArchive.WriteEntryAsync(fileSystemInfo.FullName, rootEntryName + "/" + entryName);            
         }
+    }
+    
+    private static FileInfo FollowSymlink(FileInfo fileInfo)
+    {
+        FileSystemInfo fileSystemInfo = fileInfo;
+        fileSystemInfo = fileSystemInfo.ResolveLinkTarget(returnFinalTarget: true) ?? fileSystemInfo;
+        return (FileInfo)fileSystemInfo;
     }
 }

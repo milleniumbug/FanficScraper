@@ -7,4 +7,6 @@ public class BackupConfiguration
     public string EncryptionKey { get; set; }
 
     public string AgeExecutablePath { get; set; } = "age";
+
+    public IReadOnlyList<string> AdditionalFiles { get; set; } = [];
 }
