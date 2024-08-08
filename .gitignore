@@ -3,3 +3,6 @@ obj/
 /packages/
 riderModule.iml
 /_ReSharper.Caches/
+FanficScraper/appsettings.Development.json
+BrowserCookieGrabberService/appsettings.Development.json
+

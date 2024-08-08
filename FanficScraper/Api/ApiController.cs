@@ -1,3 +1,4 @@
+using System.Net.Mime;
 using Common.Api;
 using FanficScraper.Data;
 using FanficScraper.FanFicFare;
@@ -158,6 +159,8 @@ public class ApiController : Controller
         
         HttpContext.Response.ContentType = request.MimeType;
         HttpContext.Response.StatusCode = StatusCodes.Status200OK;
+        HttpContext.Response.Headers.ContentDisposition = new ContentDisposition
+            { FileName = request.FileName, Inline = false }.ToString();
         await backupService.WriteBackup(HttpContext.Response.Body, request);
     }
 

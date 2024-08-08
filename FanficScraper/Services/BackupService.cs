@@ -40,9 +40,12 @@ public class BackupService
 
     public record BackupRequest(
         bool IncludePrivateData,
-        string? Key)
+        string? Key,
+        DateTimeOffset CurrentTime)
     {
         public bool Encrypted => Key != null;
+        
+        public string FileName => $"backup-{CurrentTime:yyyyMMddHHmmss}.tar.gz{(Encrypted ? ".enc" : "")}";
 
         public string MimeType => Key == null ? "application/gzip" : "application/octet-stream";
     }
@@ -56,7 +59,8 @@ public class BackupService
 
         return new BackupRequest(
             IncludePrivateData: key != null && key == backupConfiguration.EncryptionKey,
-            Key: key);
+            Key: key,
+            CurrentTime: this.timeProvider.GetUtcNow());
     }
 
     public async Task WriteBackup(Stream output, BackupRequest request)
