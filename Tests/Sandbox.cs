@@ -1,7 +1,12 @@
 using System.Net;
+using System.Net.Http.Json;
+using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 using Common;
+using Common.Api;
 using Common.Challenges;
+using Common.Crypto;
 using Meziantou.Extensions.Logging.Xunit;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -62,25 +67,26 @@ public class Sandbox
         PrintOutCookies(v4);
     }
     
-    [Fact]
-    public async Task GoToScribbleHub()
+    [Fact(Skip = "skip")]
+    public async Task IssueBackup()
     {
-        var cacheSolver = new FilteringChallengeSolver(
-            FilteringChallengeSolver.InclusionType.SolveNoChallengeExceptOnTheList,
-            "https://www.fanfiction.net/;https://fanfiction.net/;https://www.scribblehub.com/;https://scribblehub.com/".Split(";"),
-            new CookieGrabberSolver(
-                new HttpClient()
-                {
-                    BaseAddress = new Uri("http://localhost:12000"),
-                    Timeout = TimeSpan.FromMinutes(2),
-                },
-                XUnitLogger.CreateLogger<CookieGrabberSolver>(this.testOutputHelper)));
-
-        var httpClient = new HttpClient(new ChallengeSolverHandler(cacheSolver));
-
-        var response = await httpClient.GetAsync("https://www.scribblehub.com/series-finder/?sf=1&tgi=1088&order=desc&sort=dateadded&pg=1");
-        Assert.NotEqual(HttpStatusCode.Forbidden, response.StatusCode);
-        Assert.NotEqual(HttpStatusCode.InternalServerError, response.StatusCode);
+        var handler = new HttpClientHandler();
+        handler.ClientCertificateOptions = ClientCertificateOption.Manual;
+        handler.ServerCertificateCustomValidationCallback = 
+            (httpRequestMessage, cert, cetChain, policyErrors) =>
+            {
+                return true;
+            };
+        var httpClient = new HttpClient(handler)
+        {
+            BaseAddress = new Uri("https://localhost:7091"),
+        };
+        var response = await httpClient.GetAsync("Api/Backup?key=age1nxanrjpp60c85z6kqykqnxzxnykqy932dkme9waqqwx06zry6q7qvkj9ug");
+        var content = await response.Content.ReadAsStreamAsync();
+        await using var outputFile =
+            File.OpenWrite("encryted.tar.gz.enc");
+        await content.CopyToAsync(outputFile);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
     private void PrintOutCookies(ChallengeSolution solution)

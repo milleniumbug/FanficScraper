@@ -9,17 +9,21 @@ public class FanFicUpdater
 {
     private readonly StoryContext storyContext;
     private readonly IFanFicFare fanFicFare;
+    private readonly StoryUpdateLock storyUpdateLock;
 
     public FanFicUpdater(
         StoryContext storyContext,
-        IFanFicFare fanFicFare)
+        IFanFicFare fanFicFare,
+        StoryUpdateLock storyUpdateLock)
     {
         this.storyContext = storyContext;
         this.fanFicFare = fanFicFare;
+        this.storyUpdateLock = storyUpdateLock;
     }
 
     public async Task<(FanFicStoryDetails? details, DateTime nextUpdateTime)> UpdateOldest(TimeSpan timeSpan)
     {
+        using var storyLock = await this.storyUpdateLock.TakeStoryUpdateLock();
         var currentDate = DateTime.UtcNow;
         var date = currentDate - timeSpan;
         var nextUpdateTime = currentDate + timeSpan;
@@ -35,7 +39,7 @@ public class FanFicUpdater
         {
             return (null, nextUpdateTime);
         }
-        
+
         var oldest = stories.First();
         var secondOldest = stories.ElementAtOrDefault(1);
 
@@ -43,7 +47,7 @@ public class FanFicUpdater
         {
             nextUpdateTime = secondOldest.LastUpdated + timeSpan;
         }
-        
+
         try
         {
             var fanFicStoryDetails = await RunFanFicFare(new Uri(oldest.StoryUrl), force: false);
@@ -58,12 +62,13 @@ public class FanFicUpdater
         }
         finally
         {
-            await storyContext.SaveChangesAsync();            
+            await storyContext.SaveChangesAsync();
         }
     }
 
     public async Task<string> UpdateStory(Uri url, bool force)
     {
+        using var storyLock = await this.storyUpdateLock.TakeStoryUpdateLock();
         var fanFicStoryDetails = await RunFanFicFare(url, force: force);
         
         var currentDate = DateTime.UtcNow;

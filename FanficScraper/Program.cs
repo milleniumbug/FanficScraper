@@ -20,14 +20,20 @@ var dataConfigurationSection = builder.Configuration.GetSection("DataConfigurati
 builder.Services.Configure<DataConfiguration>(dataConfigurationSection);
 var dataConfiguration = dataConfigurationSection.Get<DataConfiguration>();
 
+var backupConfigurationSection = builder.Configuration.GetSection("BackupConfiguration");
+builder.Services.Configure<BackupConfiguration>(backupConfigurationSection);
+
 // Add services to the container.
 builder.Services.AddRazorPages();
 
 builder.Services.AddScoped<StoryBrowser>();
 builder.Services.AddScoped<FanFicUpdater>();
 builder.Services.AddScoped<UserManager>();
+builder.Services.AddScoped<BackupService>();
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddSingleton<PhraseGenerator>();
+builder.Services.AddSingleton<StoryUpdateLock>();
+builder.Services.AddSingleton<TimeProvider>(TimeProvider.System);
 builder.Services.TryAddSingleton(_ =>
     RandomNumberGenerator.Create());
 

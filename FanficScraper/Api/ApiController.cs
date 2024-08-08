@@ -143,6 +143,23 @@ public class ApiController : Controller
             NumWords = fanFicStoryDetails.NumWords
         });
     }
+    
+    [HttpGet("Backup")]
+    public async Task IssueBackup(
+        [FromQuery] string? key,
+        [FromServices] BackupService backupService)
+    {
+        var request = backupService.PrepareBackup(key);
+        if (request == null)
+        {
+            HttpContext.Response.StatusCode = StatusCodes.Status403Forbidden;
+            return;
+        }
+        
+        HttpContext.Response.ContentType = request.MimeType;
+        HttpContext.Response.StatusCode = StatusCodes.Status200OK;
+        await backupService.WriteBackup(HttpContext.Response.Body, request);
+    }
 
     private IEnumerable<StoryDetails> Map(IEnumerable<Story> stories)
     {
