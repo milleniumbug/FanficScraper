@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace FanficScraper.Configurations
 {
     public class DataConfiguration
@@ -5,6 +7,9 @@ namespace FanficScraper.Configurations
         public string ConnectionString { get; set; }
         
         public string StoriesDirectory { get; set; }
+
+        [MemberNotNullWhen(true, nameof(SecondaryFanFicScraperUrl))]
+        public bool HasSecondaryInstance => !string.IsNullOrWhiteSpace(SecondaryFanFicScraperUrl);
         
         public string? SecondaryFanFicScraperUrl { get; set; }
         

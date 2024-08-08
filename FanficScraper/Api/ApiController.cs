@@ -148,9 +148,10 @@ public class ApiController : Controller
     [HttpGet("Backup")]
     public async Task IssueBackup(
         [FromQuery] string? key,
+        [FromQuery] bool? includeEpubs,
         [FromServices] BackupService backupService)
     {
-        var request = backupService.PrepareBackup(key);
+        var request = backupService.PrepareBackup(key, includeEpubs ?? true);
         if (request == null)
         {
             HttpContext.Response.StatusCode = StatusCodes.Status403Forbidden;

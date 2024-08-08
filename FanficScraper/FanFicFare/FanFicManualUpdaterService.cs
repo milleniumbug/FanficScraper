@@ -24,7 +24,7 @@ public class FanFicManualUpdaterService : SimpleTimerHostedService
             var story = await fanFicUpdater.UpdateNextScheduled(runnerId);
             if (story != null)
             {
-                logger.LogInformation("Updated manually scheduled story: {0} by {1}", story.Title, story.Author);
+                logger.LogInformation("Updated manually scheduled story: {Title} by {Author}", story.Title, story.Author);
             }
         }
         catch (Exception e)

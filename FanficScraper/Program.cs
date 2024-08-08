@@ -29,7 +29,19 @@ builder.Services.AddRazorPages();
 builder.Services.AddScoped<StoryBrowser>();
 builder.Services.AddScoped<FanFicUpdater>();
 builder.Services.AddScoped<UserManager>();
-builder.Services.AddScoped<BackupService>();
+builder.Services.AddScoped<BackupService>(provider =>
+{
+    var dataConfiguration = provider.GetRequiredService<IOptions<DataConfiguration>>();
+    return new BackupService(
+        provider.GetRequiredService<StoryUpdateLock>(),
+        provider.GetRequiredService<IOptions<BackupConfiguration>>(),
+        dataConfiguration,
+        provider.GetRequiredService<TimeProvider>(),
+        provider.GetRequiredService<StoryContext>(),
+        dataConfiguration.Value.HasSecondaryInstance
+            ? provider.GetRequiredService<FanFicScraperClient>()
+            : null);
+});
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddSingleton<PhraseGenerator>();
 builder.Services.AddSingleton<StoryUpdateLock>();
@@ -123,18 +135,24 @@ if (dataConfiguration.ScribbleHub.EnableScribbleHubFeed)
     builder.Services.AddHostedService<ScribbleHubFeedUpdaterService>();
 }
 
+if (dataConfiguration.HasSecondaryInstance)
+{
+    builder.Services.AddScoped<FanFicScraperClient>(provider =>
+        new FanFicScraperClient(
+            new HttpClient()
+            {
+                BaseAddress = new Uri(dataConfiguration.SecondaryFanFicScraperUrl),
+                Timeout = TimeSpan.FromMinutes(30)
+            }));
+}
+
 builder.Services.AddScoped<IFanFicFare>(provider =>
 {
     var clients = new List<IFanFicFare>();
-    if (!string.IsNullOrWhiteSpace(dataConfiguration.SecondaryFanFicScraperUrl))
+    if (dataConfiguration.HasSecondaryInstance)
     {
         clients.Add(new FanFicScraper(
-            new FanFicScraperClient(
-                new HttpClient()
-                {
-                    BaseAddress = new Uri(dataConfiguration.SecondaryFanFicScraperUrl),
-                    Timeout = TimeSpan.FromMinutes(30)
-                }),
+            provider.GetRequiredService<FanFicScraperClient>(),
             Options.Create(dataConfiguration),
             provider.GetRequiredService<ILogger<FanFicScraper>>()));
     }

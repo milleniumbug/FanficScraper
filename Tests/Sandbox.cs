@@ -7,6 +7,7 @@ using Common;
 using Common.Api;
 using Common.Challenges;
 using Common.Crypto;
+using Common.Utils;
 using Meziantou.Extensions.Logging.Xunit;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -65,6 +66,22 @@ public class Sandbox
         ;
         PrintOutCookies(v2);
         PrintOutCookies(v4);
+    }
+
+    [Fact]
+    public void Query()
+    {
+        var url = "Api/Backup";
+        var urlBuilder = new UriBuilder(new Uri(new Uri("http://localhost:12000/"), new Uri(url, UriKind.Relative)))
+        {
+            Query = QueryStringBuilder.Create([
+                ("key", "aaaa"),
+                ("includeEpubs", null)
+            ]) 
+        };
+
+        var s = urlBuilder.ToString();
+        ;
     }
     
     [Fact(Skip = "skip")]

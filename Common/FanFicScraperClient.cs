@@ -4,6 +4,7 @@ using System.Text;
 using System.Text.Json;
 using System.Web;
 using Common.Api;
+using Common.Utils;
 
 namespace Common;
 
@@ -116,5 +117,23 @@ public class FanFicScraperClient
             rawResponse, jsonOpts) ?? throw new JsonException();
 
         return result;
+    }
+
+    public async Task<(HttpStatusCode code, Stream? backupStream)> Backup(string? key = null, bool? includeEpubs = null)
+    {
+        var url = "Api/Backup";
+        var urlBuilder = new UriBuilder(new Uri(this.client.BaseAddress!, new Uri(url, UriKind.Relative)))
+        {
+            Query = QueryStringBuilder.Create([
+                ("key", key),
+                ("includeEpubs", null)
+            ]) 
+        };
+        var response = await this.client.GetAsync(urlBuilder.ToString());
+        return (
+            response.StatusCode,
+            response.IsSuccessStatusCode
+                ? await response.Content.ReadAsStreamAsync()
+                : null);
     }
 }
