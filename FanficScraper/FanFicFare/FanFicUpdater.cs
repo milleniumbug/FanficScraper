@@ -45,7 +45,7 @@ public class FanFicUpdater
 
         if (secondOldest != null)
         {
-            nextUpdateTime = secondOldest.LastUpdated + timeSpan;
+            nextUpdateTime = secondOldest.NextUpdateIn ?? (secondOldest.LastUpdated + timeSpan);
         }
 
         try

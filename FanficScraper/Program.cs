@@ -163,7 +163,8 @@ builder.Services.AddScoped<IFanFicFare>(provider =>
         TargetDirectory = dataConfiguration.StoriesDirectory,
         IncludeImages = true,
         FanFicFareExecutablePath = dataConfiguration.FanFicFareExecutablePath,
-        ChallengeSolver = provider.GetService<IChallengeSolver>()
+        ChallengeSolver = provider.GetService<IChallengeSolver>(),
+        ProxyUrl = dataConfiguration.ProxyUrl,
     }, provider.GetRequiredService<ILogger<FanFicFare>>()));
 
     return new CompositeFanFicFare(clients, provider.GetRequiredService<ILogger<CompositeFanFicFare>>());

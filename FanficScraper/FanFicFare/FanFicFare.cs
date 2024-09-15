@@ -6,6 +6,7 @@ using System.Web;
 using Common;
 using Common.Challenges;
 using Common.Scraping;
+using Common.Utils;
 using HtmlAgilityPack;
 using Microsoft.AspNetCore.Components.Web;
 
@@ -21,6 +22,57 @@ public class FanFicFare : IFanFicFare
         this.settings = settings;
         this.logger = logger;
     }
+
+    public async Task<Predicate<Uri>> GetSupportedSiteMatcher()
+    {
+        var psi = new ProcessStartInfo()
+        {
+            FileName = settings.FanFicFareExecutablePath ?? "fanficfare",
+            RedirectStandardError = true,
+            UseShellExecute = false,
+            ArgumentList = { "https://example.com" }
+        };
+        using var process = new Process()
+        {
+            StartInfo = psi
+        };
+        process.Start();
+
+        HashSet<string>? sites = null;
+
+        string? line;
+        var splitValues = new[] { ',', ' ', ')', '(' };
+        while ((line = await process.StandardError.ReadLineAsync()) != null)
+        {
+            if (line.TryTrimStart("fanficfare.exceptions.UnknownSite: Unknown Site(https://example.com).  Supported sites: (", StringComparison.Ordinal, out var trimmed))
+            {
+                var urls = trimmed.Split(splitValues,
+                    StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                sites = urls
+                    .Select(url =>
+                        UrlNoWww(url))
+                    .ToHashSet();
+            }
+        }
+        
+        await process.WaitForExitAsync();
+
+        if (sites == null)
+        {
+            throw new FanficFareException("fanficfare format error");
+        }
+
+        return uri =>
+        {
+            var host = uri.Host;
+            return sites.Contains(UrlNoWww(host));
+        };
+
+        string UrlNoWww(string url)
+        {
+            return url.TryTrimStart("www.", StringComparison.Ordinal, out var urlNoWww) ? urlNoWww : url;
+        }
+    }
     
     public Task<FanFicStoryDetails> Run(Uri storyUrl, bool metadataOnly = false, bool force = false)
     {
@@ -34,6 +86,11 @@ public class FanFicFare : IFanFicFare
                 RedirectStandardError = true,
                 UseShellExecute = false,
             };
+            if (settings.ProxyUrl != null)
+            {
+                psi.EnvironmentVariables["HTTPS_PROXY"] = settings.ProxyUrl;
+            }
+            
             if (settings.TargetDirectory != null)
             {
                 psi.WorkingDirectory = settings.TargetDirectory;

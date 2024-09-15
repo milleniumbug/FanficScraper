@@ -28,5 +28,7 @@ namespace FanficScraper.Configurations
         public ScribbleHubFeedConfiguration ScribbleHub { get; set; } = new();
         
         public string? FanFicFareExecutablePath { get; set; }
+        
+        public string? ProxyUrl { get; set; }
     }
 }

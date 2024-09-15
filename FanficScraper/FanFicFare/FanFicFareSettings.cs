@@ -14,4 +14,6 @@ public class FanFicFareSettings
     public string? FanFicFareExecutablePath { get; set; }
 
     public IChallengeSolver? ChallengeSolver { get; set; }
+    
+    public string? ProxyUrl { get; set; }
 }
