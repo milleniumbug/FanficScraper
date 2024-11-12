@@ -11,7 +11,6 @@ namespace FanficScraper.FanFicFare;
 public class ScribbleHubFeedUpdaterService : SimpleTimerHostedService
 {
     private readonly ILogger<ScribbleHubFeedUpdaterService> logger;
-    private const int AlreadyAddedStoriesMaxCount = 5;
 
     public ScribbleHubFeedUpdaterService(
         ILogger<ScribbleHubFeedUpdaterService> logger,
@@ -48,11 +47,17 @@ public class ScribbleHubFeedUpdaterService : SimpleTimerHostedService
         var visitedStories = new HashSet<Uri>();
         foreach (var seriesFinderSetting in seriesFinderSettings)
         {
-            await ScrapeFeed(scribbleHubFeed, configuration, seriesFinderSetting, visitedStories, fanficscraper);
+            await ScrapeFeed(
+                logger,
+                scribbleHubFeed,
+                configuration,
+                seriesFinderSetting,
+                visitedStories,
+                fanficscraper);
         }
     }
 
-    private async Task ScrapeFeed(
+    public static async Task ScrapeFeed(ILogger<ScribbleHubFeedUpdaterService> logger,
         ScribbleHubFeed.ScribbleHubFeed scribbleHubFeed,
         ScribbleHubFeedConfiguration configuration,
         SeriesFinderSettings seriesFinderSetting,
@@ -114,7 +119,7 @@ public class ScribbleHubFeedUpdaterService : SimpleTimerHostedService
                     }
 
                     logger.LogInformation("End of page");
-                    if (alreadyAddedStoriesCount > AlreadyAddedStoriesMaxCount)
+                    if (alreadyAddedStoriesCount > configuration.AlreadyAddedStoriesMaxCount)
                     {
                         break;
                     }

@@ -13,6 +13,6 @@ sudo service fanficscraper stop
 sqlite3 "$REMOTEDB" "$(printf '.backup %s/app.db.bak' ~ )"
 sudo cp -r "$REMOTEDROP"/* "$REMOTETARGET"
 cd "$REMOTETARGET"
-./efbundle --connection "$CONNECTIONSTRING"
+sudo ./efbundle --connection "$CONNECTIONSTRING"
 sudo service fanficscraper start
 ENDSSH

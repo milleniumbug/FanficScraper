@@ -11,4 +11,6 @@ public class ScribbleHubFeedConfiguration
     public string FanFicScraperInstancePassword { get; set; }
 
     public string ScribbleHubAddress { get; set; } = "https://www.scribblehub.com";
+
+    public int AlreadyAddedStoriesMaxCount { get; set; } = 5;
 }
