@@ -9,6 +9,13 @@ Console.WriteLine(JsonSerializer.Serialize(JsonSerializer.Serialize(new SeriesFi
         SortDirection = SortOrder.Descending,
         SortBy = SortCriteria.DateAdded,
         IncludedTags = new[] { Tags.Parse("Transgender") }
+    },
+    new SeriesFinderSettings()
+    {
+        Status = StoryStatus.All,
+        SortDirection = SortOrder.Descending,
+        SortBy = SortCriteria.DateAdded,
+        IncludedGenres = new [] { Genre.GenderBender },
     }
 })));
 

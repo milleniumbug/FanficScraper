@@ -170,6 +170,8 @@ public class FanFicFare : IFanFicFare
 
                     return new FanFicStoryDetails(
                         author: HttpUtility.HtmlDecode(meta.Author),
+                        license: null,
+                        authorId: HttpUtility.HtmlDecode(meta.AuthorId),
                         title: HttpUtility.HtmlDecode(meta.Title),
                         publicationDate: ParseDate(meta.DatePublished),
                         websiteUpdateDate: ParseDate(meta.DateUpdated),

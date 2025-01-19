@@ -20,9 +20,13 @@ public class FanFicStoryDetails
     public string? Rating { get; }
     public IReadOnlyList<string>? Warnings { get; }
     public IReadOnlyList<string>? DescriptionParagraphs { get; }
+    public string? AuthorId { get; }
+    public string? License { get; set; }
 
     public FanFicStoryDetails(
         string author,
+        string? authorId,
+        string? license,
         string title,
         DateTime publicationDate,
         DateTime websiteUpdateDate,
@@ -42,6 +46,8 @@ public class FanFicStoryDetails
         IReadOnlyList<string>? descriptionParagraphs)
     {
         Author = author;
+        AuthorId = authorId;
+        License = license;
         Title = title;
         PublicationDate = publicationDate;
         WebsiteUpdateDate = websiteUpdateDate;

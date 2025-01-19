@@ -19,7 +19,7 @@ public class StoryUrlNormalizer
         this.httpClient = httpClient;
     }
 
-    public async Task<Uri> NormalizeUrl(Uri uri)
+    public static string? GetAbbreviation(Uri uri)
     {
         switch (uri.GetOrigin())
         {
@@ -27,21 +27,43 @@ public class StoryUrlNormalizer
             case "https://www.scribblehub.com/":
             case "http://scribblehub.com/":
             case "https://scribblehub.com/":
-                return await ScribbleHub(uri);
+                return "scrhub";
             case "http://www.tgstorytime.com/":
             case "https://www.tgstorytime.com/":
             case "http://tgstorytime.com/":
             case "https://tgstorytime.com/":
-                return await TgStoryTime(uri);
+                return "tgstory";
             case "http://www.archiveofourown.org/":
             case "https://www.archiveofourown.org/":
             case "http://archiveofourown.org/":
             case "https://archiveofourown.org/":
-                return await ArchiveOfOurOwn(uri);
+                return "ao3";
             case "http://royalroad.com/":
             case "https://royalroad.com/":
             case "http://www.royalroad.com/":
             case "https://www.royalroad.com/":
+                return "rylrdl";
+            case "http://wattpad.com/":
+            case "https://wattpad.com/":
+            case "http://www.wattpad.com/":
+            case "https://www.wattpad.com/":
+                return "wattpad";
+            default:
+                return null;
+        }
+    }
+
+    public async Task<Uri> NormalizeUrl(Uri uri)
+    {
+        switch (GetAbbreviation(uri))
+        {
+            case "scrhub":
+                return await ScribbleHub(uri);
+            case "tgstory":
+                return await TgStoryTime(uri);
+            case "ao3":
+                return await ArchiveOfOurOwn(uri);
+            case "rylrdl":
                 return await RoyalRoad(uri);
             default:
                 return await GetFallback(uri);

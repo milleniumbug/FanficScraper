@@ -40,7 +40,10 @@ public class ScribbleHub
         var httpClient = new HttpClient(new ChallengeSolverHandler(this.solver));
 
         var feed = new ScribbleHubFeed.ScribbleHubFeed(
-            new CachingScraper(httpClient, new NullCache<string, string>()));
+            new CachingScraper(
+                httpClient,
+                new NullCache<string, string>(),
+                XUnitLogger.CreateLogger<CachingScraper>(this.testOutputHelper)));
 
         var series = feed.SeriesFinder(s);
         await foreach (var story in series.Take(2).SelectMany(page => page.ToAsyncEnumerable()))

@@ -3,6 +3,8 @@ namespace Common.Api;
 public record StoryDetails
 {
     public string Author { get; set; }
+    public string? AuthorId { get; set; }
+    public string? License { get; set; }
     public string Name { get; set; }
     public string Url { get; set; }
     public bool IsComplete { get; set; }
@@ -24,4 +26,5 @@ public record StoryDetails
     public int? NumChapters { get; set; }
     
     public int? NumWords { get; set; }
+    public string SiteAbbreviation { get; set; }
 }

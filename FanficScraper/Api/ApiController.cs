@@ -41,6 +41,8 @@ public class ApiController : Controller
             return this.Ok(new GetStoryQueryResponse()
             {
                 Author = story.AuthorName,
+                AuthorId = story.AuthorId,
+                License = story.License,
                 Name = story.StoryName,
                 Url = story.StoryUrl,
                 IsComplete = story.IsComplete,
@@ -129,6 +131,8 @@ public class ApiController : Controller
         {
             Id = fanFicStoryDetails.OutputFilename,
             Author = fanFicStoryDetails.Author,
+            AuthorId = fanFicStoryDetails.AuthorId,
+            License = fanFicStoryDetails.License,
             Name = fanFicStoryDetails.Title,
             IsComplete = fanFicStoryDetails.IsCompleted,
             StoryUpdated = fanFicStoryDetails.WebsiteUpdateDate,
@@ -141,7 +145,8 @@ public class ApiController : Controller
             Warnings = fanFicStoryDetails.Warnings,
             DescriptionParagraphs = fanFicStoryDetails.DescriptionParagraphs,
             NumChapters = fanFicStoryDetails.NumChapters,
-            NumWords = fanFicStoryDetails.NumWords
+            NumWords = fanFicStoryDetails.NumWords,
+            SiteAbbreviation = fanFicStoryDetails.SiteAbbreviation,
         });
     }
     
@@ -170,6 +175,8 @@ public class ApiController : Controller
         return stories.Select(story => new StoryDetails()
         {
             Author = story.AuthorName,
+            AuthorId = story.AuthorId,
+            License = story.License,
             Name = story.StoryName,
             Url = story.StoryUrl,
             IsComplete = story.IsComplete,

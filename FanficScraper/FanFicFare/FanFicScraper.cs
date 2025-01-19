@@ -70,6 +70,8 @@ public class FanFicScraper : IFanFicFare
             
             return new FanFicStoryDetails(
                 author: getResult.Author,
+                license: getResult.License,
+                authorId: getResult.AuthorId,
                 title: getResult.Name,
                 publicationDate: DateTime.MinValue,
                 websiteUpdateDate: getResult.StoryUpdated,
@@ -77,7 +79,7 @@ public class FanFicScraper : IFanFicFare
                 numChapters: getResult.NumChapters,
                 numWords: getResult.NumWords,
                 siteUrl: new Uri(getResult.Url).Host,
-                siteAbbreviation: "",
+                siteAbbreviation: getResult.SiteAbbreviation,
                 storyUrl: getResult.Url,
                 isCompleted: getResult.IsComplete,
                 category: getResult.Category,
