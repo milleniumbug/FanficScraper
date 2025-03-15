@@ -18,6 +18,8 @@ public class StoryContext : DbContext
     public DbSet<User> Users { get; set; }
     
     public DbSet<DownloadJob> DownloadJobs { get; set; }
+    
+    public DbSet<DiscordUser> DiscordUsers { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -53,6 +55,11 @@ public class StoryContext : DbContext
             var downloadJobBuilder = modelBuilder.Entity<DownloadJob>();
             downloadJobBuilder.HasIndex(user => new { user.Status, user.AddedDate });
             downloadJobBuilder.HasIndex(user => user.AddedDate);
+        }
+        
+        {
+            var userBuilder = modelBuilder.Entity<DiscordUser>();
+            userBuilder.HasKey(user => user.Id);
         }
     }
     

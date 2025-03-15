@@ -1,3 +1,4 @@
+using System.Net;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using Common;
@@ -116,23 +117,34 @@ if (dataConfiguration.CookieGrabber.EnableCookieGrabber)
             provider.GetRequiredService<ILogger<CompositeChallengeSolver>>()));
 }
 
+builder.Services.AddScoped<CachingScraper>(provider =>
+{
+    HttpClientHandler? httpHandler = null;
+    if (dataConfiguration.ProxyUrl != null)
+    {
+        httpHandler = new HttpClientHandler()
+        {
+            Proxy = new WebProxy(dataConfiguration.ProxyUrl),
+            UseProxy = true,
+        };
+    }
+
+    var handler = new ChallengeSolverHandler(provider.GetRequiredService<IChallengeSolver>(), httpHandler);
+    var client = new HttpClient(handler)
+    {
+        BaseAddress = new Uri(dataConfiguration.ScribbleHub.ScribbleHubAddress),
+        Timeout = Timeout.InfiniteTimeSpan,
+    };
+        
+    return new CachingScraper(
+        client,
+        new NullCache<string, string>(),
+        provider.GetRequiredService<ILogger<CachingScraper>>());
+});
+builder.Services.AddScoped<ScribbleHubFeed.ScribbleHubFeed>();
+
 if (dataConfiguration.ScribbleHub.EnableScribbleHubFeed)
 {
-    builder.Services.AddScoped<CachingScraper>(provider =>
-    {
-        var handler = new ChallengeSolverHandler(provider.GetRequiredService<IChallengeSolver>());
-        var client = new HttpClient(handler)
-        {
-            BaseAddress = new Uri(dataConfiguration.ScribbleHub.ScribbleHubAddress),
-            Timeout = Timeout.InfiniteTimeSpan,
-        };
-        
-        return new CachingScraper(
-            client,
-            new NullCache<string, string>(),
-            provider.GetRequiredService<ILogger<CachingScraper>>());
-    });
-    builder.Services.AddScoped<ScribbleHubFeed.ScribbleHubFeed>();
     builder.Services.AddHostedService<ScribbleHubFeedUpdaterService>();
 }
 
@@ -157,21 +169,24 @@ builder.Services.AddScoped<IFanFicFare>(provider =>
             Options.Create(dataConfiguration),
             provider.GetRequiredService<ILogger<FanFicScraper>>()));
     }
+    else
+    {
+        clients.Add(
+            new FanFicFareInfoEnricher(
+                new FanFicFare(
+                    new FanFicFareSettings()
+                    {
+                        IsAdult = true,
+                        TargetDirectory = dataConfiguration.StoriesDirectory,
+                        IncludeImages = true,
+                        FanFicFareExecutablePath = dataConfiguration.FanFicFareExecutablePath,
+                        ChallengeSolver = provider.GetService<IChallengeSolver>(),
+                        ProxyUrl = dataConfiguration.ProxyUrl,
+                    },
+                    provider.GetRequiredService<ILogger<FanFicFare>>()),
+                provider.GetRequiredService<CachingScraper>()));
 
-    clients.Add(
-        new FanFicFareInfoEnricher(
-            new FanFicFare(
-                new FanFicFareSettings()
-                {
-                    IsAdult = true,
-                    TargetDirectory = dataConfiguration.StoriesDirectory,
-                    IncludeImages = true,
-                    FanFicFareExecutablePath = dataConfiguration.FanFicFareExecutablePath,
-                    ChallengeSolver = provider.GetService<IChallengeSolver>(),
-                    ProxyUrl = dataConfiguration.ProxyUrl,
-                }, 
-                provider.GetRequiredService<ILogger<FanFicFare>>()),
-            provider.GetRequiredService<CachingScraper>()));
+    }
 
     return new CompositeFanFicFare(clients, provider.GetRequiredService<ILogger<CompositeFanFicFare>>());
 });

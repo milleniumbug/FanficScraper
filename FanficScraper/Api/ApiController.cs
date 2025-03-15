@@ -55,7 +55,8 @@ public class ApiController : Controller
                 Warnings = story.StoryData?.Warnings,
                 DescriptionParagraphs = story.StoryData?.DescriptionParagraphs,
                 NumChapters = story.StoryData?.NumChapters,
-                NumWords = story.StoryData?.NumWords
+                NumWords = story.StoryData?.NumWords,
+                IsRemoved = story.IsRemoved,
             });
         }
         else

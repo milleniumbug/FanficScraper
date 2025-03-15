@@ -21,32 +21,17 @@ public class StoryUrlNormalizer
 
     public static string? GetAbbreviation(Uri uri)
     {
-        switch (uri.GetOrigin())
+        switch (uri.HostNoWww())
         {
-            case "http://www.scribblehub.com/":
-            case "https://www.scribblehub.com/":
-            case "http://scribblehub.com/":
-            case "https://scribblehub.com/":
+            case "scribblehub.com":
                 return "scrhub";
-            case "http://www.tgstorytime.com/":
-            case "https://www.tgstorytime.com/":
-            case "http://tgstorytime.com/":
-            case "https://tgstorytime.com/":
+            case "tgstorytime.com":
                 return "tgstory";
-            case "http://www.archiveofourown.org/":
-            case "https://www.archiveofourown.org/":
-            case "http://archiveofourown.org/":
-            case "https://archiveofourown.org/":
+            case "archiveofourown.org":
                 return "ao3";
-            case "http://royalroad.com/":
-            case "https://royalroad.com/":
-            case "http://www.royalroad.com/":
-            case "https://www.royalroad.com/":
+            case "royalroad.com":
                 return "rylrdl";
-            case "http://wattpad.com/":
-            case "https://wattpad.com/":
-            case "http://www.wattpad.com/":
-            case "https://www.wattpad.com/":
+            case "wattpad.com":
                 return "wattpad";
             default:
                 return null;
@@ -73,14 +58,14 @@ public class StoryUrlNormalizer
     private async Task<Uri> RoyalRoad(Uri uri)
     {
         var trimmed = uri.GetLeftPart(UriPartial.Path);
-        var match = new Regex(@"^https?://(www\.)?archiveofourown\.org/works/([0-9]+)").Match(trimmed);
+        var match = new Regex(@"^https?://(www\.)?royalroad\.com/fiction/([0-9]+)").Match(trimmed);
         if (!match.Success)
         {
             return await GetFallback(uri);
         }
 
         var worksParameter = match.Groups[2].Value;
-        return new Uri($"https://archiveofourown.org/works/{worksParameter}");
+        return new Uri($"https://www.royalroad.com/fiction/{worksParameter}");
     }
 
     private async Task<Uri> ArchiveOfOurOwn(Uri uri)

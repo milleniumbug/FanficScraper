@@ -1,3 +1,4 @@
+using System.Net;
 using Common.Scraping;
 using ScrapySharp.Extensions;
 
@@ -16,37 +17,6 @@ public class FanFicFareInfoEnricher : IFanFicFare
     {
         this.fanFicFare = fanFicFare;
         this.cachingScraper = cachingScraper;
-    }
-    
-    public class MainSiteInfo
-    {
-        public string? License { get; set; }
-    }
-
-    private class ExtraInfo(Uri storyUrl, CachingScraper cachingScraper)
-    {
-        private MainSiteInfo? mainSiteInfo;
-
-        private async Task<MainSiteInfo> GetMainSiteInfo()
-        {
-            var page = await cachingScraper.DownloadAsync(storyUrl.ToString());
-
-            return new MainSiteInfo
-            {
-                License = page.Document.DocumentNode
-                    .CssSelect(".copyright .copy_allrights")
-                    ?.FirstOrDefault()
-                    ?.ParentNode
-                    ?.Element("span")
-                    ?.GetInnerTextForReal()
-            };
-        }
-        
-        public async Task<string?> GetLicense()
-        {
-            mainSiteInfo = mainSiteInfo ?? await GetMainSiteInfo();
-            return mainSiteInfo.License;
-        }
     }
 
     public async Task<FanFicStoryDetails> Run(Uri storyUrl, bool metadataOnly = false, bool force = false)
@@ -74,6 +44,60 @@ public class FanFicFareInfoEnricher : IFanFicFare
             warnings: result.Warnings,
             rating: result.Rating,
             descriptionParagraphs: result.DescriptionParagraphs,
-            publicationDate: result.PublicationDate);
+            publicationDate: result.PublicationDate,
+            isRemoved: result.IsRemoved ?? await extraInfo.GetIsRemoved(),
+            isArchived: result.IsArchived);
+    }
+}
+
+public class ExtraInfo(Uri storyUrl, CachingScraper cachingScraper)
+{
+    public class MainSiteInfo
+    {
+        public string? License { get; set; }
+        
+        public bool? IsRemoved { get; set; }
+    }
+    
+    private MainSiteInfo? mainSiteInfo;
+
+    private async Task<MainSiteInfo> GetMainSiteInfo()
+    {
+        var (doc, code) = await cachingScraper.GetAsync(storyUrl.ToString());
+
+        string? license = null; 
+        switch (StoryUrlNormalizer.GetAbbreviation(storyUrl))
+        {
+            case "scrhub":
+                license = doc.Document.DocumentNode
+                    .CssSelect(".copyright .copy_allrights")
+                    ?.FirstOrDefault()
+                    ?.ParentNode
+                    ?.Element("span")
+                    ?.GetInnerTextForReal();
+                break;
+        }
+        return new MainSiteInfo
+        {
+            License = license,
+            IsRemoved = code switch
+            {
+                HttpStatusCode.OK => false,
+                HttpStatusCode.NotFound => true,
+                _ => null,
+            }
+        };
+    }
+        
+    public async Task<string?> GetLicense()
+    {
+        mainSiteInfo ??= await GetMainSiteInfo();
+        return mainSiteInfo.License;
+    }
+    
+    public async Task<bool?> GetIsRemoved()
+    {
+        mainSiteInfo ??= await GetMainSiteInfo();
+        return mainSiteInfo.IsRemoved;
     }
 }

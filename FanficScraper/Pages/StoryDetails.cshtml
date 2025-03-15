@@ -43,6 +43,11 @@
         {
             <span>Warnings: @string.Join(", ", Model.Story.StoryData.Warnings)</span><br/>
         }
+        @if (Model.Story?.License != null)
+        {
+            <br/>
+            <b>License: @Model.Story.License</b><br/>
+        }
         <br/>
         <a href="@Model.Story.StoryUrl">Go to the story</a><br/>
         <a href="/Story/@Model.Story.FileName">Download EPUB</a> 

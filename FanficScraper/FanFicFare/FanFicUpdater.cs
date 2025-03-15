@@ -265,6 +265,9 @@ public class FanFicUpdater
         story.LastUpdated = currentDate;
         story.StoryUpdated = fanFicStoryDetails.WebsiteUpdateDate;
         story.StoryUrl = fanFicStoryDetails.StoryUrl;
+        story.License = fanFicStoryDetails.License;
+        story.IsRemoved = fanFicStoryDetails.IsRemoved;
+        story.IsArchived = fanFicStoryDetails.IsArchived;
 
         story.StoryData ??= new StoryData();
         story.StoryData.Category = fanFicStoryDetails.Category;

@@ -2,6 +2,7 @@ namespace Common.Api;
 
 public record StoryDetails
 {
+    public string Id { get; set; }
     public string Author { get; set; }
     public string? AuthorId { get; set; }
     public string? License { get; set; }

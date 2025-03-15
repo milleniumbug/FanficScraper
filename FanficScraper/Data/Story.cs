@@ -28,5 +28,9 @@ public class Story
     
     public string FileName { get; set; }
     
+    public bool? IsRemoved { get; set; }
+    
+    public bool IsArchived { get; set; }
+    
     public StoryData? StoryData { get; set; }
 }

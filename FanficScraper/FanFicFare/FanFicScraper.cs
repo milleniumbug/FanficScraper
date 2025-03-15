@@ -88,7 +88,9 @@ public class FanFicScraper : IFanFicFare
                 relationships: getResult.Relationships,
                 rating: getResult.Rating,
                 warnings: getResult.Warnings,
-                descriptionParagraphs: getResult.DescriptionParagraphs);
+                descriptionParagraphs: getResult.DescriptionParagraphs,
+                isRemoved: getResult.IsRemoved,
+                isArchived: getResult.IsArchived);
         }
     }
 }

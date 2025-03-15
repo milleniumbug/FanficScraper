@@ -21,7 +21,9 @@ public class FanFicStoryDetails
     public IReadOnlyList<string>? Warnings { get; }
     public IReadOnlyList<string>? DescriptionParagraphs { get; }
     public string? AuthorId { get; }
-    public string? License { get; set; }
+    public string? License { get; }
+    public bool? IsRemoved { get; }
+    public bool IsArchived { get; }
 
     public FanFicStoryDetails(
         string author,
@@ -43,7 +45,9 @@ public class FanFicStoryDetails
         IReadOnlyList<string>? relationships,
         string? rating,
         IReadOnlyList<string>? warnings,
-        IReadOnlyList<string>? descriptionParagraphs)
+        IReadOnlyList<string>? descriptionParagraphs,
+        bool? isRemoved,
+        bool isArchived)
     {
         Author = author;
         AuthorId = authorId;
@@ -65,5 +69,7 @@ public class FanFicStoryDetails
         Rating = rating;
         Warnings = warnings;
         DescriptionParagraphs = descriptionParagraphs;
+        IsRemoved = isRemoved;
+        IsArchived = isArchived;
     }
 }

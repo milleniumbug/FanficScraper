@@ -3,6 +3,7 @@ using System;
 using FanficScraper.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,32 +11,14 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FanficScraper.Migrations
 {
     [DbContext(typeof(StoryContext))]
-    partial class StoryContextModelSnapshot : ModelSnapshot
+    [Migration("20250119180856_AddIsRemovedField")]
+    partial class AddIsRemovedField
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.7");
-
-            modelBuilder.Entity("FanficScraper.Data.DiscordUser", b =>
-                {
-                    b.Property<ulong>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<bool>("CanAddStories")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<bool>("CanMarkStoriesAsArchived")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<bool>("CanRead")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("DiscordUsers");
-                });
 
             modelBuilder.Entity("FanficScraper.Data.DownloadJob", b =>
                 {
@@ -91,9 +74,6 @@ namespace FanficScraper.Migrations
                     b.Property<string>("FileName")
                         .IsRequired()
                         .HasColumnType("TEXT");
-
-                    b.Property<bool>("IsArchived")
-                        .HasColumnType("INTEGER");
 
                     b.Property<bool>("IsComplete")
                         .HasColumnType("INTEGER");

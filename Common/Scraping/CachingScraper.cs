@@ -26,8 +26,15 @@ public class CachingScraper
 
     public async Task<WebDocument> DownloadAsync(string url)
     {
-        var html = new HtmlDocument();
+        var (document, _) = await GetAsync(url);
+        return document;
+    }
 
+    public async Task<(WebDocument document, HttpStatusCode? code)> GetAsync(string url)
+    {
+        var html = new HtmlDocument();
+        HttpStatusCode? code = null;
+        
         this.logger.LogInformation("Attempting to scrape {Url}", url);
         var rawHtml = await cache.Get(url);
         
@@ -39,6 +46,7 @@ public class CachingScraper
         {
             this.logger.LogInformation("Url was NOT found in cache, issuing manual download {Url}", url);
             var response = await client.GetAsync(url);
+            code = response.StatusCode;
             this.logger.LogInformation("Manual download issued for URL {Url} (Status Code = {StatusCode}", url, response.StatusCode);
             if (response.IsSuccessStatusCode)
             {
@@ -56,6 +64,6 @@ public class CachingScraper
         this.logger.LogInformation("Attempting to parse HTML");
         html.LoadHtml(rawHtml);
 
-        return new WebDocument(html, url);
+        return (new WebDocument(html, url), code);
     }
 }

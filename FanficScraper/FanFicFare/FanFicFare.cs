@@ -50,7 +50,7 @@ public class FanFicFare : IFanFicFare
                     StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
                 sites = urls
                     .Select(url =>
-                        UrlNoWww(url))
+                        new UriBuilder("https", url).Uri.HostNoWww())
                     .ToHashSet();
             }
         }
@@ -64,14 +64,8 @@ public class FanFicFare : IFanFicFare
 
         return uri =>
         {
-            var host = uri.Host;
-            return sites.Contains(UrlNoWww(host));
+            return sites.Contains(uri.HostNoWww());
         };
-
-        string UrlNoWww(string url)
-        {
-            return url.TryTrimStart("www.", StringComparison.Ordinal, out var urlNoWww) ? urlNoWww : url;
-        }
     }
     
     public Task<FanFicStoryDetails> Run(Uri storyUrl, bool metadataOnly = false, bool force = false)
@@ -171,6 +165,7 @@ public class FanFicFare : IFanFicFare
                     return new FanFicStoryDetails(
                         author: HttpUtility.HtmlDecode(meta.Author),
                         license: null,
+                        isRemoved: false,
                         authorId: HttpUtility.HtmlDecode(meta.AuthorId),
                         title: HttpUtility.HtmlDecode(meta.Title),
                         publicationDate: ParseDate(meta.DatePublished),
@@ -200,7 +195,8 @@ public class FanFicFare : IFanFicFare
                         warnings: string.IsNullOrEmpty(meta.Warnings)
                             ? null
                             : HttpUtility.HtmlDecode(meta.Warnings).Split(',', StringSplitOptions.TrimEntries),
-                        descriptionParagraphs: MakeDescriptionParagraphs(meta.DescriptionHTML));
+                        descriptionParagraphs: MakeDescriptionParagraphs(meta.DescriptionHTML),
+                        isArchived: false);
                 }
                 else
                 {
