@@ -17,9 +17,9 @@ public class FirefoxCookiesContextFactory : IDbContextFactory<FirefoxCookiesCont
     
     public FirefoxCookiesContext CreateDbContext()
     {
-        var path = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString().Replace("-", ""));
+        var path = Path.Combine(Path.GetTempPath(), "bcgs_" + Guid.NewGuid().ToString().Replace("-", ""));
         File.Copy(config.PathToProfile, path);
-        var connectionString = $"Data Source={path};Mode=ReadOnly";
+        var connectionString = $"Data Source={path};Mode=ReadOnly;Pooling=false";
         return new FirefoxCookiesContext(
             new DbContextOptionsBuilder<FirefoxCookiesContext>()
                 .UseSqlite(connectionString).Options,

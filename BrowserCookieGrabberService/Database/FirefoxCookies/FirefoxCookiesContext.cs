@@ -86,6 +86,17 @@ namespace BrowserCookieGrabberService.Database.FirefoxCookies
             if (path != null)
             {
                 File.Delete(path);
+                File.Delete(path+"-wal");
+            }
+        }
+        
+        public override async ValueTask DisposeAsync()
+        {
+            await base.DisposeAsync();
+            if (path != null)
+            {
+                File.Delete(path);
+                File.Delete(path+"-wal");
             }
         }
     }
